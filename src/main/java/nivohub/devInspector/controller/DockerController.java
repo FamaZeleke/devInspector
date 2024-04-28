@@ -16,6 +16,12 @@ public class DockerController {
 
         populateImageSelection();
         handleRunButtonAction();
+        view.getImageSelection().getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (oldValue != null && !oldValue.equals(newValue)) {
+                view.getTagSelection().getItems().clear();
+            }
+            populateTagSelection();
+        });
     }
 
     private void populateImageSelection() {
@@ -27,13 +33,12 @@ public class DockerController {
     }
 
     private void populateTagSelection() {
-        // TODO GET TAGS
-        // Get the list of tags for the selected image from the model
         String selectedImage = view.getImageSelection().getSelectionModel().getSelectedItem();
-        List<String> tags = model.getTags(selectedImage);
-
-        // Add the tags to the tag selection dropdown in the view
-        view.getTagSelection().getItems().addAll(tags);
+        if (selectedImage != null) {
+            List<String> tags = model.getTags(selectedImage);
+            // Add the tags to the tag selection dropdown in the view
+            view.getTagSelection().getItems().addAll(tags);
+        }
     }
 
     private void handleRunButtonAction() {

@@ -1,1 +1,10 @@
-["kale5/rickroll"]
+[
+  {
+    "image":"kale5/rickroll",
+    "tags":["latest"]
+  },
+    {
+        "image":"test",
+        "tags":["v1"]
+    }
+]

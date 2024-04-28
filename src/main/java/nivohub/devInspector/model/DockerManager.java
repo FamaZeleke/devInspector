@@ -13,19 +13,21 @@ import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DockerManager {
     private DockerClient dockerClient;
-    private List<String> imageNames;
+    private List<Map<String, Object>> imageNames;
+    private List<String> tags;
 
     public DockerManager() throws DockerCertificateException {
         this.dockerClient = DefaultDockerClient.fromEnv().build();
-        this.imageNames = readImageNames();
+        this.imageNames = readImageDefinitions();
     }
 
 
-    private List<String> readImageNames() {
-        Type listType = new TypeToken<List<String>>() {}.getType();
+    private List<Map<String, Object>> readImageDefinitions() {
+        Type listType = new TypeToken<List<Map<String, Object>>>() {}.getType();
         try {
             InputStream is = getClass().getClassLoader().getResourceAsStream("imageDefinitions.json");
             if (is == null) {
@@ -34,12 +36,27 @@ public class DockerManager {
             InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
             return new Gson().fromJson(isr, listType);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read image names from JSON file", e);
+            throw new RuntimeException("Failed to read image definitions from JSON file", e);
         }
     }
 
     public List<String> getImageNames() {
+        List<Map<String, Object>> imageDefinitions = readImageDefinitions();
+        List<String> imageNames = new ArrayList<>();
+        for (Map<String, Object> imageDefinition : imageDefinitions) {
+            imageNames.add((String) imageDefinition.get("image"));
+        }
         return imageNames;
+    }
+
+    public List<String> getTags(String imageName) {
+        List<Map<String, Object>> imageDefinitions = readImageDefinitions();
+        for (Map<String, Object> imageDefinition : imageDefinitions) {
+            if (imageName.equals(imageDefinition.get("image"))) {
+                return (List<String>) imageDefinition.get("tags");
+            }
+        }
+        return new ArrayList<>();
     }
 
     private boolean imageExists(String imageName) {
