@@ -1,4 +1,4 @@
-package nivohub.devInspector;
+package nivohub.devInspector.view;
 
 
 import javafx.geometry.Pos;
@@ -9,9 +9,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import nivohub.devInspector.view.AppMenu;
+import nivohub.devInspector.User;
+import nivohub.devInspector.controller.SceneController;
 
-public class Home {
+public class Home implements SceneController.SceneCreator {
     private final User user;
     private final AppMenu appMenu;
 

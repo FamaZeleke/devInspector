@@ -1,5 +1,6 @@
 package nivohub.devInspector;
 
+import com.spotify.docker.client.exceptions.DockerCertificateException;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -9,10 +10,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.geometry.Pos;
+import nivohub.devInspector.controller.DockerController;
 import nivohub.devInspector.controller.SceneController;
 import nivohub.devInspector.exceptions.FullNameException;
 import nivohub.devInspector.exceptions.PasswordException;
+import nivohub.devInspector.model.DockerManager;
 import nivohub.devInspector.view.AppMenu;
+import nivohub.devInspector.view.DockerScene;
+import nivohub.devInspector.view.Home;
 
 public class AppRoot extends Application {
     private SceneController sceneController;
@@ -57,7 +62,6 @@ public class AppRoot extends Application {
 
         Label errorMessage = new Label();
         Button submitButton = new Button("Submit");
-
         passwordInput.setOnAction(e -> submitButton.fire());
         submitButton.setOnAction(event -> {
             try {
@@ -67,11 +71,12 @@ public class AppRoot extends Application {
 
                 // Create Home and DockerApplication instances after the user has logged in
                 Home home = new Home(user, new AppMenu(sceneController));
-                Scene homeScene = home.createScene();
-                this.sceneController.addScene("Home", homeScene);
+                this.sceneController.addScene("Home", home);
 
-                DockerApplication dockerApplication = new DockerApplication(new AppMenu(sceneController));
-                Scene dockerScene = dockerApplication.createScene();
+                DockerManager dockerManager = new DockerManager();
+                DockerScene dockerScene = new DockerScene(new AppMenu(sceneController));
+                DockerController dockerController = new DockerController(dockerScene, dockerManager);
+                dockerScene.setController(dockerController);
                 this.sceneController.addScene("Docker", dockerScene);
 
                 this.sceneController.showScene("Home");
@@ -79,6 +84,8 @@ public class AppRoot extends Application {
                 errorMessage.setText(exception.getMessage()); // display error message
             } catch (PasswordException e) {
                 errorMessage.setText(e.getMessage());
+            } catch (DockerCertificateException e) {
+                throw new RuntimeException(e);
             }
         });
 

@@ -2,6 +2,7 @@ package nivohub.devInspector.controller;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import nivohub.devInspector.view.AppMenu;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,16 @@ public class SceneController {
         this.primaryStage = primaryStage;
     }
 
-    public void addScene(String name, Scene scene) {
+    public interface SceneCreator {
+        Scene createScene();
+    }
+
+//    public void addScene(String name, Scene scene) {
+//        scenes.put(name, scene);
+//    }
+
+    public void addScene(String name, SceneCreator creator) {
+        Scene scene = creator.createScene();
         scenes.put(name, scene);
     }
 

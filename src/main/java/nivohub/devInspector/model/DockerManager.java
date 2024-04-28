@@ -8,9 +8,10 @@ import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.messages.ContainerConfig;
 
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DockerManager {
@@ -22,21 +23,23 @@ public class DockerManager {
         this.imageNames = readImageNames();
     }
 
+
     private List<String> readImageNames() {
         Type listType = new TypeToken<List<String>>() {}.getType();
         try {
-            return new Gson().fromJson(new FileReader("imageNames.json"), listType);
+            InputStream is = getClass().getClassLoader().getResourceAsStream("imageDefinitions.json");
+            if (is == null) {
+                throw new FileNotFoundException("Could not find 'imageDefinitions.json' in resources directory");
+            }
+            InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+            return new Gson().fromJson(isr, listType);
         } catch (IOException e) {
             throw new RuntimeException("Failed to read image names from JSON file", e);
         }
     }
 
-    public void setupImages() {
-        for (String imageName : imageNames) {
-            if (!imageExists(imageName)) {
-                pullAndRunImage(imageName);
-            }
-        }
+    public List<String> getImageNames() {
+        return imageNames;
     }
 
     private boolean imageExists(String imageName) {
@@ -48,23 +51,22 @@ public class DockerManager {
         }
     }
 
-    private void pullAndRunImage(String imageName) {
+
+
+    public String createAndRunContainer(String imageName, String tag, String port) {
         try {
-            dockerClient.pull(imageName);
-            ContainerConfig containerConfig = ContainerConfig.builder().image(imageName).build();
+            dockerClient.pull(imageName + ":" + tag);
+            ContainerConfig containerConfig = ContainerConfig.builder()
+                .image(imageName + ":" + tag)
+                .exposedPorts(port)
+                .env("TAG=" + tag)
+                .build();
             String containerId = dockerClient.createContainer(containerConfig).id();
             dockerClient.startContainer(containerId);
+            return containerId;
         } catch (Exception e) {
             throw new RuntimeException("Failed to pull and run image " + imageName, e);
         }
-    }
-
-
-    public void createAndRunContainers() {
-    }
-
-    private void createAndRunContainer() {
-        // Use the Spotify Docker client to create and run a container from the image
     }
 
 }
