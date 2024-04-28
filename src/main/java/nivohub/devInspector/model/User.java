@@ -1,4 +1,4 @@
-package nivohub.devInspector;
+package nivohub.devInspector.model;
 
 import nivohub.devInspector.exceptions.FullNameException;
 import nivohub.devInspector.exceptions.PasswordException;

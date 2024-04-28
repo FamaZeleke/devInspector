@@ -9,7 +9,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import nivohub.devInspector.User;
+import nivohub.devInspector.model.User;
 import nivohub.devInspector.controller.SceneController;
 
 public class Home implements SceneController.SceneCreator {

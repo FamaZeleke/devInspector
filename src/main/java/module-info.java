@@ -10,4 +10,6 @@ module nivohub.digitalartifactmaven {
     exports nivohub.devInspector;
     exports nivohub.devInspector.view;
     opens nivohub.devInspector.view to javafx.fxml;
+    exports nivohub.devInspector.model;
+    opens nivohub.devInspector.model to javafx.fxml;
 }
