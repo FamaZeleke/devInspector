@@ -29,7 +29,7 @@ public class AppRoot extends Application {
         User user = new User();
         LoginController loginController = new LoginController(loginScene, user, sceneController);
         loginScene.setController(loginController);
-        loginScene.setSubmitAction(e -> loginController.handleSubmit());
+        loginScene.setSubmitAction();
 
         primaryStage.setScene(loginScene.createScene());
         primaryStage.setTitle("Nivo Debugger Wizard");

@@ -1,7 +1,5 @@
 package nivohub.devInspector.view;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -16,14 +14,14 @@ import nivohub.devInspector.controller.LoginController;
 import nivohub.devInspector.controller.SceneController;
 
 public class LoginScene implements SceneController.SceneCreator {
-    private Label welcomeLabel = new Label("Welcome");
-    private Label nameLabel = new Label("Full Name");
-    private TextField nameInput = new TextField();
-    private Label passwordLabel = new Label("Password");
-    private PasswordField passwordInput = new PasswordField();
-    private Label errorMessage = new Label();
-    private Button submitButton = new Button("Submit");
-    private GridPane grid = new GridPane();
+    private final Label welcomeLabel = new Label("Welcome");
+    private final Label nameLabel = new Label("Full Name");
+    private final TextField nameInput = new TextField();
+    private final Label passwordLabel = new Label("Password");
+    private final PasswordField passwordInput = new PasswordField();
+    private final Label errorMessage = new Label();
+    private final Button submitButton = new Button("Submit");
+    private final GridPane grid = new GridPane();
     private LoginController controller;
 
     public Scene createScene() {
@@ -63,8 +61,8 @@ public class LoginScene implements SceneController.SceneCreator {
         errorMessage.setText(message);
     }
 
-    public void setSubmitAction(EventHandler<ActionEvent> action) {
-    submitButton.setOnAction(action);
+    public void setSubmitAction() {
+        submitButton.setOnAction(e -> controller.handleSubmit());
     }
 
 }

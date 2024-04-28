@@ -6,10 +6,11 @@ module nivohub.digitalartifactmaven {
     requires com.google.gson;
 
 
-    opens nivohub.devInspector to javafx.fxml;
     exports nivohub.devInspector;
     exports nivohub.devInspector.view;
-    opens nivohub.devInspector.view to javafx.fxml;
     exports nivohub.devInspector.model;
+    exports nivohub.devInspector.controller;
+    opens nivohub.devInspector to javafx.fxml;
+    opens nivohub.devInspector.view to javafx.fxml;
     opens nivohub.devInspector.model to javafx.fxml;
 }
