@@ -2,8 +2,6 @@ package nivohub.devInspector.controller;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import nivohub.devInspector.view.AppMenu;
-
 import java.util.HashMap;
 import java.util.Map;
 

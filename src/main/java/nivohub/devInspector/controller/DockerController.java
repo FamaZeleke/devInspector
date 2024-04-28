@@ -26,6 +26,16 @@ public class DockerController {
         view.getImageSelection().getItems().addAll(imageNames);
     }
 
+    private void populateTagSelection() {
+        // TODO GET TAGS
+        // Get the list of tags for the selected image from the model
+        String selectedImage = view.getImageSelection().getSelectionModel().getSelectedItem();
+        List<String> tags = model.getTags(selectedImage);
+
+        // Add the tags to the tag selection dropdown in the view
+        view.getTagSelection().getItems().addAll(tags);
+    }
+
     private void handleRunButtonAction() {
         // Set the action for the "Run" button in the view
         view.getRunButton().setOnAction(e -> {
