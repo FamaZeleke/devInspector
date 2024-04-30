@@ -67,18 +67,27 @@ public class DockerScene implements SceneController.SceneCreator {
     public Scene createScene(){
         layout.setPrefSize(900, 600);
 
+        //Layout
         SplitPane splitPane = new SplitPane();
         VBox.setVgrow(splitPane, Priority.ALWAYS);
+        splitPane.setDividerPositions(0.25, 0.75);
 
+        // Left pane
         AnchorPane leftPane = new AnchorPane();
         Label configurationLabel = new Label("Configuration");
         configurationLabel.setLayoutX(14);
         configurationLabel.setLayoutY(14);
         configurationLabel.setFont(new Font(18));
         configurationLabel.setTextFill(Color.color(0.624, 0.624, 0.624));
+
+        //Left Content
         VBox leftVBox = new VBox(24);
         leftVBox.setLayoutX(14);
         leftVBox.setLayoutY(43);
+        imageSelection.setPrefWidth(150);
+        tagSelection.setPrefWidth(150);
+        portInput.setPrefWidth(150);
+        portInput.setPromptText("Port e.g. 8080");
         leftVBox.getChildren().addAll(imageSelection, tagSelection, portInput, runButton);
         leftPane.getChildren().addAll(configurationLabel, leftVBox);
 

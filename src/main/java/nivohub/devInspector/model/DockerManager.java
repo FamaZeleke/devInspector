@@ -1,12 +1,27 @@
 package nivohub.devInspector.model;
 
 
-import com.google.common.reflect.TypeToken;
+
+//import com.github.dockerjava.api.DockerClient;
+//import com.github.dockerjava.api.command.CreateContainerResponse;
+//import com.github.dockerjava.api.command.PullImageResultCallback;
+//import com.github.dockerjava.api.model.ExposedPort;
+//import com.github.dockerjava.api.model.Ports;
+//import com.github.dockerjava.core.DefaultDockerClientConfig;
+//import com.github.dockerjava.core.DockerClientBuilder;
+//import com.github.dockerjava.core.DockerClientConfig;
+//import com.google.gson.Gson;
+//import com.google.gson.reflect.TypeToken;
+
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
+import com.github.dockerjava.core.DockerClientBuilder;
 import com.google.gson.Gson;
-import com.spotify.docker.client.DefaultDockerClient;
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.exceptions.DockerCertificateException;
-import com.spotify.docker.client.messages.ContainerConfig;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -15,19 +30,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+
+
 public class DockerManager {
-    private DockerClient dockerClient;
     private List<Map<String, Object>> imageNames;
     private List<String> tags;
+    private final DockerClient dockerClient;
+    private DefaultDockerClientConfig config;
 
-    public DockerManager() throws DockerCertificateException {
-        this.dockerClient = DefaultDockerClient.fromEnv().build();
+    public DockerManager() {
         this.imageNames = readImageDefinitions();
+        this.config = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).build();
+        this.dockerClient = DockerClientBuilder.getInstance(config).build();
     }
 
-
     private List<Map<String, Object>> readImageDefinitions() {
-        Type listType = new TypeToken<List<Map<String, Object>>>() {}.getType();
+        Type listType = new TypeToken<List<Map<String, Object>>>() {
+        }.getType();
         try {
             InputStream is = getClass().getClassLoader().getResourceAsStream("imageDefinitions.json");
             if (is == null) {
@@ -59,31 +78,32 @@ public class DockerManager {
         return new ArrayList<>();
     }
 
-    private boolean imageExists(String imageName) {
+    public String createAndRunContainer(String imageName, String tag, int port) {
         try {
-            dockerClient.inspectImage(imageName);
-            return true;
+            // Pull the image from Docker Hub
+            dockerClient.pullImageCmd(imageName + ":" + tag)
+                    .exec(new PullImageResultCallback())
+                    .awaitCompletion();
+
+            // Setup port configuration
+            ExposedPort tcpPort = ExposedPort.tcp(port);
+            Ports portBindings = new Ports();
+            portBindings.bind(tcpPort, Ports.Binding.bindPort(port));
+
+            // Create container
+            CreateContainerResponse container = dockerClient.createContainerCmd(imageName + ":" + tag)
+                    .withExposedPorts(tcpPort)
+                    .withPortBindings(portBindings)
+                    .exec();
+
+            // Start the container
+            dockerClient.startContainerCmd(container.getId()).exec();
+
+            System.out.println("Container started with ID: " + container.getId());
         } catch (Exception e) {
-            return false;
+            e.printStackTrace();
         }
-    }
-
-
-
-    public String createAndRunContainer(String imageName, String tag, String port) {
-        try {
-            dockerClient.pull(imageName + ":" + tag);
-            ContainerConfig containerConfig = ContainerConfig.builder()
-                .image(imageName + ":" + tag)
-                .exposedPorts(port)
-                .env("TAG=" + tag)
-                .build();
-            String containerId = dockerClient.createContainer(containerConfig).id();
-            dockerClient.startContainer(containerId);
-            return containerId;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to pull and run image " + imageName, e);
-        }
+        return "Container started";
     }
 
 }

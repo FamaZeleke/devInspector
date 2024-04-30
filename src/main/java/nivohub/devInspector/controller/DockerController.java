@@ -42,6 +42,7 @@ public class DockerController {
     }
 
     private void handleRunButtonAction() {
+        Integer portS = 0;
         // Set the action for the "Run" button in the view
         view.getRunButton().setOnAction(e -> {
             // Get the selected image, port, and tag from the view
@@ -50,7 +51,8 @@ public class DockerController {
             String selectedTag = view.getTagSelection().getSelectionModel().getSelectedItem();
 
             // Call the createAndRunContainers method in the model
-            List<String> containerIds = Collections.singletonList(model.createAndRunContainer(selectedImage, port, selectedTag));
+            int ports = Integer.parseInt(port);
+            List<String> containerIds = Collections.singletonList(model.createAndRunContainer(selectedImage,selectedTag , ports));
 
             // Display the container IDs in the output area in the view
             for (String containerId : containerIds) {

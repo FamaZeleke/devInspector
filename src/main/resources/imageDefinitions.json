@@ -1,7 +1,7 @@
 [
   {
     "image":"kale5/rickroll",
-    "tags":["latest"]
+    "tags":["latest","arm64"]
   },
     {
         "image":"test",

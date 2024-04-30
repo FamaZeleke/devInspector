@@ -1,6 +1,5 @@
 package nivohub.devInspector.controller;
 
-import com.spotify.docker.client.exceptions.DockerCertificateException;
 import nivohub.devInspector.model.DockerManager;
 import nivohub.devInspector.model.User;
 import nivohub.devInspector.view.AppMenu;
@@ -44,8 +43,6 @@ public class LoginController {
             sceneController.showScene("Home");
         } catch (FullNameException | PasswordException e) {
             view.setErrorMessage(e.getMessage());
-        } catch (DockerCertificateException e) {
-            throw new RuntimeException(e);
         }
     }
 }
