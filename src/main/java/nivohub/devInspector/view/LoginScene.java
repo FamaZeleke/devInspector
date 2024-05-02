@@ -13,7 +13,7 @@ import javafx.scene.text.FontWeight;
 import nivohub.devInspector.controller.LoginController;
 import nivohub.devInspector.controller.SceneController;
 
-public class LoginScene implements SceneController.SceneCreator {
+public class LoginScene extends BaseScene implements SceneController.SceneCreator {
     private final Label welcomeLabel = new Label("Welcome");
     private final Label nameLabel = new Label("Full Name");
     private final TextField nameInput = new TextField();
@@ -24,6 +24,20 @@ public class LoginScene implements SceneController.SceneCreator {
     private final GridPane grid = new GridPane();
     private LoginController controller;
 
+    public LoginScene() {
+        super(null);
+    }
+
+    @Override
+    public void setController(Object controller) {
+        if (controller instanceof LoginController) {
+            this.controller = (LoginController) controller;
+        } else {
+            throw new IllegalArgumentException("Controller must be a LoginController");
+        }
+    }
+
+    @Override
     public Scene createScene() {
         welcomeLabel.setFont(Font.font("Inter", FontWeight.MEDIUM, 20));
         passwordInput.setPromptText("Enter password");
@@ -43,10 +57,6 @@ public class LoginScene implements SceneController.SceneCreator {
 
         return new Scene(grid, 600, 300);
 
-    }
-
-    public void setController(LoginController controller) {
-        this.controller = controller;
     }
 
     public String getFullNameInput() {

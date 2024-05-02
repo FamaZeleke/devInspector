@@ -9,17 +9,15 @@ public class SceneController {
     private final Stage primaryStage;
     private final Map<String, Scene> scenes = new HashMap<>();
 
-    public SceneController(Stage primaryStage) {
-        this.primaryStage = primaryStage;
-    }
-
+    // Functional Interface enforcing Single Abstract Method (SAM) rule
+    @FunctionalInterface
     public interface SceneCreator {
         Scene createScene();
     }
 
-//    public void addScene(String name, Scene scene) {
-//        scenes.put(name, scene);
-//    }
+    public SceneController(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+    }
 
     public void addScene(String name, SceneCreator creator) {
         Scene scene = creator.createScene();

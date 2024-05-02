@@ -12,11 +12,12 @@ import javafx.scene.text.FontWeight;
 import nivohub.devInspector.model.User;
 import nivohub.devInspector.controller.SceneController;
 
-public class Home implements SceneController.SceneCreator {
+public class HomeScene extends BaseScene implements SceneController.SceneCreator {
     private final User user;
     private final AppMenu appMenu;
 
-    public Home(User user, AppMenu appMenu) {
+    public HomeScene(User user, AppMenu appMenu) {
+        super(appMenu);
         this.user = user;
         this.appMenu = appMenu;
     }
@@ -33,5 +34,9 @@ public class Home implements SceneController.SceneCreator {
         VBox vBox = new VBox(menuBar, appGrid);
 
         return new Scene(vBox, 960, 600);
+    }
+
+    @Override
+    public void setController(Object controller) {
     }
 }

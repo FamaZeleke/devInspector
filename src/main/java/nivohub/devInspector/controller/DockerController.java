@@ -1,14 +1,17 @@
 package nivohub.devInspector.controller;
 
+import javafx.application.Platform;
 import nivohub.devInspector.view.DockerScene;
 import nivohub.devInspector.model.DockerManager;
 
-import java.util.Collections;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 public class DockerController {
-    private DockerScene view;
-    private DockerManager model;
+    private final DockerScene view;
+    private final DockerManager model;
 
     public DockerController(DockerScene view, DockerManager model) {
         this.view = view;
@@ -42,22 +45,42 @@ public class DockerController {
     }
 
     private void handleRunButtonAction() {
-        Integer portS = 0;
-        // Set the action for the "Run" button in the view
         view.getRunButton().setOnAction(e -> {
-            // Get the selected image, port, and tag from the view
             String selectedImage = view.getImageSelection().getSelectionModel().getSelectedItem();
             String port = view.getPortInput().getText();
             String selectedTag = view.getTagSelection().getSelectionModel().getSelectedItem();
-
-            // Call the createAndRunContainers method in the model
             int ports = Integer.parseInt(port);
-            List<String> containerIds = Collections.singletonList(model.createAndRunContainer(selectedImage,selectedTag , ports));
 
-            // Display the container IDs in the output area in the view
-            for (String containerId : containerIds) {
-                view.getOutputArea().getItems().add("Created and started container with ID: " + containerId);
+            String containerId = model.createAndRunContainer(selectedImage, selectedTag, ports);
+            if (containerId != null) {
+                Platform.runLater(() -> {
+                    view.addContainerDetails(containerId, ports);
+                    view.getOutputArea().getItems().add("Created and started container with ID: " + containerId);
+                });
+                streamContainerLogs(containerId);
             }
         });
     }
+
+    // Lambda Expression
+    private void streamContainerLogs(String containerId) {
+        model.streamContainerLogs(containerId, logMessage -> Platform.runLater(() -> view.getOutputArea().getItems().add(logMessage)));
+    }
+
+
+    public void openBrowserToPort(int port) {
+        String url = "http://localhost:" + port;
+        try {
+            // JavaFX Desktop or Java Desktop class can be used to open a browser window
+            java.awt.Desktop.getDesktop().browse(new URI(url));
+        } catch (IOException | URISyntaxException ex) {
+            ex.printStackTrace();
+            // Handle exceptions (show an error dialog or log it)
+        }
+    }
+
+
+
+
+
 }

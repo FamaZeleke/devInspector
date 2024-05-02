@@ -1,25 +1,14 @@
 package nivohub.devInspector.model;
 
-
-
-//import com.github.dockerjava.api.DockerClient;
-//import com.github.dockerjava.api.command.CreateContainerResponse;
-//import com.github.dockerjava.api.command.PullImageResultCallback;
-//import com.github.dockerjava.api.model.ExposedPort;
-//import com.github.dockerjava.api.model.Ports;
-//import com.github.dockerjava.core.DefaultDockerClientConfig;
-//import com.github.dockerjava.core.DockerClientBuilder;
-//import com.github.dockerjava.core.DockerClientConfig;
-//import com.google.gson.Gson;
-//import com.google.gson.reflect.TypeToken;
-
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -29,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import java.util.function.Consumer;
 
 
 public class DockerManager {
@@ -96,14 +85,48 @@ public class DockerManager {
                     .withPortBindings(portBindings)
                     .exec();
 
-            // Start the container
-            dockerClient.startContainerCmd(container.getId()).exec();
+            String containerId = container.getId();
 
-            System.out.println("Container started with ID: " + container.getId());
+            // Start the container
+            dockerClient.startContainerCmd(containerId).exec();
+
+            System.out.println("Container started with ID: " + containerId);
+            return containerId;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "Container started";
+        return null;
+    }
+
+    public void streamContainerLogs(String containerId, Consumer<String> logHandler) {
+        try {
+            dockerClient.logContainerCmd(containerId)
+                    .withStdOut(true)
+                    .withStdErr(true)
+                    .withFollowStream(true)
+                    .withTailAll()
+                    .exec(new LogContainerResultCallback() {
+                        @Override
+                        public void onNext(Frame frame) {
+                            String logMessage = new String(frame.getPayload(), StandardCharsets.UTF_8);
+                            logHandler.accept(logMessage);
+                        }
+
+                        @Override
+                        public void onComplete() {
+                            super.onComplete();
+                            logHandler.accept("Log streaming completed for container: " + containerId);
+                        }
+
+                        @Override
+                        public void onError(Throwable throwable) {
+                            super.onError(throwable);
+                            logHandler.accept("Error streaming logs for container: " + containerId + ": " + throwable.getMessage());
+                        }
+                    });
+        } catch (Exception e) {
+            logHandler.accept("Failed to start log streaming for container " + containerId + ": " + e.getMessage());
+        }
     }
 
 }

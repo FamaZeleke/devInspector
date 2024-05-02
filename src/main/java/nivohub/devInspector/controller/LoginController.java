@@ -4,7 +4,7 @@ import nivohub.devInspector.model.DockerManager;
 import nivohub.devInspector.model.User;
 import nivohub.devInspector.view.AppMenu;
 import nivohub.devInspector.view.DockerScene;
-import nivohub.devInspector.view.Home;
+import nivohub.devInspector.view.HomeScene;
 import nivohub.devInspector.view.LoginScene;
 import nivohub.devInspector.exceptions.FullNameException;
 import nivohub.devInspector.exceptions.PasswordException;
@@ -30,8 +30,8 @@ public class LoginController {
             validateAndSubmit(view.getFullNameInput(), view.getPasswordInput());
 
             // User has logged in successfully, create and add other scenes to the sceneController
-            Home home = new Home(model, new AppMenu(sceneController));
-            sceneController.addScene("Home", home);
+            HomeScene homeScene = new HomeScene(model, new AppMenu(sceneController));
+            sceneController.addScene("Home", homeScene);
 
             DockerManager dockerManager = new DockerManager();
             DockerScene dockerScene = new DockerScene(new AppMenu(sceneController));
