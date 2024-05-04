@@ -7,6 +7,7 @@ import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.core.DockerClientConfig;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -19,12 +20,28 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 
+
 public class DockerManager {
     private final DockerClient dockerClient;
+    private final String platform;
+    public DockerManager(User user) {
+//        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).build();
+//        this.dockerClient = DockerClientBuilder.getInstance(config).build();
+        this.platform = user.getPlatform();
+        this.dockerClient = createDockerClient();
+    }
 
-    public DockerManager() {
-        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).build();
-        this.dockerClient = DockerClientBuilder.getInstance(config).build();
+    public DockerClient createDockerClient() {
+        DockerClientConfig config;
+        if (platform.equals("windows")) {
+            config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                    .build();
+        } else {
+            config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                    .withDockerTlsVerify(false)
+                    .build();
+        }
+        return DockerClientBuilder.getInstance(config).build();
     }
 
     private List<Map<String, Object>> readImageDefinitions() {

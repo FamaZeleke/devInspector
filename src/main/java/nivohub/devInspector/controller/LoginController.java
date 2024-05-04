@@ -18,7 +18,7 @@ public class LoginController {
     private final User user;
     private final SceneController sceneController;
     private final CommandLineController commandLineController;
-    private final DockerManager dockerManager = new DockerManager();
+    private final DockerManager dockerManager;
     private final AlertDialog alertDialog = new AlertDialog();
 
     public LoginController(LoginScene view, User model, SceneController sceneController, CommandLineController commandLineController) {
@@ -26,6 +26,7 @@ public class LoginController {
         this.user = model;
         this.sceneController = sceneController;
         this.commandLineController= commandLineController;
+        this.dockerManager = new DockerManager(user);
     }
 
     public void validateAndSubmit(String fullName, String password) throws FullNameException, PasswordException {
