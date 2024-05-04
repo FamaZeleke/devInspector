@@ -11,9 +11,14 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import nivohub.devInspector.controller.LoginController;
-import nivohub.devInspector.controller.SceneController;
 
-public class LoginScene extends BaseScene implements SceneController.SceneCreator {
+/**
+ * The LoginScene class represents a scene for user login in the application.
+ * It extends the BaseScene class and implements the SceneController.SceneCreator interface.
+ * The scene contains UI elements such as labels, text fields, and buttons for user input and interaction.
+ * The class provides methods to retrieve user input, set error messages, and handle submit actions.
+ */
+public class LoginScene extends BaseScene {
     private final Label welcomeLabel = new Label("Welcome");
     private final Label nameLabel = new Label("Full Name");
     private final TextField nameInput = new TextField();
@@ -71,7 +76,10 @@ public class LoginScene extends BaseScene implements SceneController.SceneCreato
         errorMessage.setText(message);
     }
 
+    //Abstracting the business logic to the login controller
     public void setSubmitAction() {
+        nameInput.setOnAction(e -> submitButton.fire());
+        passwordInput.setOnAction(e -> submitButton.fire());
         submitButton.setOnAction(e -> controller.handleSubmit());
     }
 

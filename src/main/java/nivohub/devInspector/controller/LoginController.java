@@ -1,42 +1,38 @@
 package nivohub.devInspector.controller;
 
-import nivohub.devInspector.model.DockerManager;
 import nivohub.devInspector.model.User;
 import nivohub.devInspector.view.AppMenu;
-import nivohub.devInspector.view.DockerScene;
-import nivohub.devInspector.view.HomeScene;
 import nivohub.devInspector.view.LoginScene;
+import javafx.scene.Scene;
 import nivohub.devInspector.exceptions.FullNameException;
 import nivohub.devInspector.exceptions.PasswordException;
 
 public class LoginController {
-    private LoginScene view;
-    private User model;
-    private SceneController sceneController;
+    private final LoginScene view;
+    private final User user;
+    private final SceneController sceneController;
 
     public LoginController(LoginScene view, User model, SceneController sceneController) {
         this.view = view;
-        this.model = model;
+        this.user = model;
         this.sceneController = sceneController;
     }
 
     public void validateAndSubmit(String fullName, String password) throws FullNameException, PasswordException {
-        model.setFullName(fullName);
-        model.validatePassword(password);
+        user.setFullName(fullName);
+        user.validatePassword(password);
     }
 
     public void handleSubmit() {
         try {
             validateAndSubmit(view.getFullNameInput(), view.getPasswordInput());
 
-            // User has logged in successfully, create and add other scenes to the sceneController
-            HomeScene homeScene = new HomeScene(model, new AppMenu(sceneController));
+            AppMenu appMenu = new AppMenu(sceneController);
+            SceneFactory sceneFactory = new SceneFactory(user, appMenu);
+            Scene homeScene = sceneFactory.createScene("Home");
             sceneController.addScene("Home", homeScene);
 
-            DockerManager dockerManager = new DockerManager();
-            DockerScene dockerScene = new DockerScene(new AppMenu(sceneController));
-            DockerController dockerController = new DockerController(dockerScene, dockerManager);
-            dockerScene.setController(dockerController);
+            Scene dockerScene = sceneFactory.createScene("Docker");
             sceneController.addScene("Docker", dockerScene);
 
             // Show the home scene

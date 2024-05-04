@@ -47,14 +47,14 @@ public class DockerController {
     private void handleRunButtonAction() {
         view.getRunButton().setOnAction(e -> {
             String selectedImage = view.getImageSelection().getSelectionModel().getSelectedItem();
-            String port = view.getPortInput().getText();
+            int hostPort = Integer.parseInt(view.getHostPort().getText());
+            int exposedPort = Integer.parseInt(view.getExposedPort().getText());
             String selectedTag = view.getTagSelection().getSelectionModel().getSelectedItem();
-            int ports = Integer.parseInt(port);
 
-            String containerId = model.createAndRunContainer(selectedImage, selectedTag, ports);
+            String containerId = model.createAndRunContainer(selectedImage, selectedTag, hostPort, exposedPort);
             if (containerId != null) {
                 Platform.runLater(() -> {
-                    view.addContainerDetails(containerId, ports);
+                    view.addContainerDetails(containerId, hostPort);
                     view.getOutputArea().getItems().add("Created and started container with ID: " + containerId);
                 });
                 streamContainerLogs(containerId);
@@ -68,8 +68,8 @@ public class DockerController {
     }
 
 
-    public void openBrowserToPort(int port) {
-        String url = "http://localhost:" + port;
+    public void openBrowserToPort(int hostPort) {
+        String url = "http://localhost:" + hostPort;
         try {
             // JavaFX Desktop or Java Desktop class can be used to open a browser window
             java.awt.Desktop.getDesktop().browse(new URI(url));

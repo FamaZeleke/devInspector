@@ -8,12 +8,12 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import nivohub.devInspector.controller.DockerController;
-import nivohub.devInspector.controller.SceneController;
 
-public class DockerScene extends BaseScene implements SceneController.SceneCreator {
+public class DockerScene extends BaseScene {
     private final VBox layout = new VBox();
     private final ComboBox<String> imageSelection = new ComboBox<>();
-    private final TextField portInput = new TextField();
+    private final TextField exposedPort = new TextField();
+    private final TextField hostPort = new TextField();
     private final ComboBox<String> tagSelection = new ComboBox<>();
     private final Button runButton = new Button("Run");
     private final ListView<String> outputArea = new ListView<>();
@@ -59,9 +59,11 @@ public class DockerScene extends BaseScene implements SceneController.SceneCreat
         leftVBox.setLayoutY(43);
         imageSelection.setPrefWidth(150);
         tagSelection.setPrefWidth(150);
-        portInput.setPrefWidth(150);
-        portInput.setPromptText("Port e.g. 8080");
-        leftVBox.getChildren().addAll(imageSelection, tagSelection, portInput, runButton);
+        hostPort.setPrefWidth(150);
+        hostPort.setPromptText("Host Port e.g. 8080");
+        exposedPort.setPrefWidth(150);
+        exposedPort.setPromptText("Exposed Port e.g. 80");
+        leftVBox.getChildren().addAll(imageSelection, tagSelection, hostPort, exposedPort, runButton);
         leftPane.getChildren().addAll(configurationLabel, leftVBox);
 
 
@@ -100,7 +102,7 @@ public class DockerScene extends BaseScene implements SceneController.SceneCreat
         return new Scene(layout);
     }
 
-    public void addContainerDetails(String containerId, int port) {
+    public void addContainerDetails(String containerId, int hostPort) {
         TitledPane containerPane = new TitledPane();
         containerPane.setText("Container: " + containerId);
 
@@ -110,10 +112,10 @@ public class DockerScene extends BaseScene implements SceneController.SceneCreat
         // Add various details to the container details box
         Label idLabel = new Label("Container ID: " + containerId);
         Label portLabel = new Label("Configured Port (Click Me!): ");
-        Hyperlink portLink = new Hyperlink(String.valueOf(port));
+        Hyperlink portLink = new Hyperlink(String.valueOf(hostPort));
         portLink.setOnAction(event -> {
             // Action to open the browser or perform some operation
-            controller.openBrowserToPort(port);
+            controller.openBrowserToPort(hostPort);
         });
 
         containerDetailsBox.getChildren().addAll(idLabel, portLabel, portLink);
@@ -130,8 +132,12 @@ public class DockerScene extends BaseScene implements SceneController.SceneCreat
     }
 
     // Getter for the port input field
-    public TextField getPortInput() {
-        return portInput;
+    public TextField getExposedPort() {
+        return exposedPort;
+    }
+
+    public TextField getHostPort() {
+        return hostPort;
     }
 
     // Getter for the tag selection dropdown

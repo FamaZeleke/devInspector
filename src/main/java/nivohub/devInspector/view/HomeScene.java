@@ -10,9 +10,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import nivohub.devInspector.model.User;
-import nivohub.devInspector.controller.SceneController;
 
-public class HomeScene extends BaseScene implements SceneController.SceneCreator {
+public class HomeScene extends BaseScene {
     private final User user;
     private final AppMenu appMenu;
 

@@ -1,14 +1,12 @@
 package nivohub.devInspector.model;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
-import com.github.dockerjava.api.model.ExposedPort;
-import com.github.dockerjava.api.model.Frame;
-import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
-import com.github.dockerjava.core.command.LogContainerResultCallback;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -22,14 +20,10 @@ import java.util.function.Consumer;
 
 
 public class DockerManager {
-    private List<Map<String, Object>> imageNames;
-    private List<String> tags;
     private final DockerClient dockerClient;
-    private DefaultDockerClientConfig config;
 
     public DockerManager() {
-        this.imageNames = readImageDefinitions();
-        this.config = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).build();
+        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).build();
         this.dockerClient = DockerClientBuilder.getInstance(config).build();
     }
 
@@ -67,7 +61,7 @@ public class DockerManager {
         return new ArrayList<>();
     }
 
-    public String createAndRunContainer(String imageName, String tag, int port) {
+    public String createAndRunContainer(String imageName, String tag, int hostPort, int exposedPort) {
         try {
             // Pull the image from Docker Hub
             dockerClient.pullImageCmd(imageName + ":" + tag)
@@ -75,14 +69,14 @@ public class DockerManager {
                     .awaitCompletion();
 
             // Setup port configuration
-            ExposedPort tcpPort = ExposedPort.tcp(port);
-            Ports portBindings = new Ports();
-            portBindings.bind(tcpPort, Ports.Binding.bindPort(port));
+            Ports.Binding binding = Ports.Binding.bindPort(hostPort);
+            ExposedPort tcpPort = ExposedPort.tcp(exposedPort);
 
-            // Create container
+            HostConfig hostConfig = HostConfig.newHostConfig()
+                    .withPortBindings(new PortBinding(binding, tcpPort));
+
             CreateContainerResponse container = dockerClient.createContainerCmd(imageName + ":" + tag)
-                    .withExposedPorts(tcpPort)
-                    .withPortBindings(portBindings)
+                    .withHostConfig(hostConfig)
                     .exec();
 
             String containerId = container.getId();
@@ -105,7 +99,7 @@ public class DockerManager {
                     .withStdErr(true)
                     .withFollowStream(true)
                     .withTailAll()
-                    .exec(new LogContainerResultCallback() {
+                    .exec(new ResultCallback.Adapter<Frame>() {
                         @Override
                         public void onNext(Frame frame) {
                             String logMessage = new String(frame.getPayload(), StandardCharsets.UTF_8);

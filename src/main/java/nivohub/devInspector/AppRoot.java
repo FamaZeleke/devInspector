@@ -32,7 +32,7 @@ public class AppRoot extends Application {
         loginScene.setSubmitAction();
 
         primaryStage.setScene(loginScene.createScene());
-        primaryStage.setTitle("Nivo Debugger Wizard");
+        primaryStage.setTitle("Docker Wizard");
         primaryStage.show();
     }
 
