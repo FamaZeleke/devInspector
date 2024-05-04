@@ -10,18 +10,22 @@ import nivohub.devInspector.view.HomeScene;
 public class SceneFactory {
     private final User user;
     private final AppMenu appMenu;
+    private final DockerManager dockerManager;
 
-    public SceneFactory(User user, AppMenu appMenu) {
+    public SceneFactory(User user, AppMenu appMenu, DockerManager dockerManager) {
         this.user = user;
         this.appMenu = appMenu;
+        this.dockerManager = dockerManager;
     }
 
     public Scene createScene(String sceneType) {
         switch (sceneType) {
             case "Home":
-                return new HomeScene(user, appMenu).createScene();
+                HomeScene homeScene = new HomeScene(user, appMenu);
+                HomeController homeController = new HomeController(homeScene, dockerManager);
+                homeScene.setController(homeController);
+                return homeScene.createScene();
             case "Docker":
-                DockerManager dockerManager = new DockerManager();
                 DockerScene dockerScene = new DockerScene(appMenu);
                 DockerController dockerController = new DockerController(dockerScene, dockerManager);
                 dockerScene.setController(dockerController);

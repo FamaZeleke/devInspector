@@ -123,4 +123,13 @@ public class DockerManager {
         }
     }
 
+    public boolean isDockerRunning() {
+        try {
+            dockerClient.pingCmd().exec();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }

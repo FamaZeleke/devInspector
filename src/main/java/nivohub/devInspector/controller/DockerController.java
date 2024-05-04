@@ -18,7 +18,11 @@ public class DockerController {
         this.model = model;
 
         populateImageSelection();
+        setupImageSelectionListener(view);
         handleRunButtonAction();
+    }
+
+    private void setupImageSelectionListener(DockerScene view) {
         view.getImageSelection().getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (oldValue != null && !oldValue.equals(newValue)) {
                 view.getTagSelection().getItems().clear();
