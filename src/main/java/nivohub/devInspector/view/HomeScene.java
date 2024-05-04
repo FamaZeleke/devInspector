@@ -1,4 +1,4 @@
-package nivohub.devInspector;
+package nivohub.devInspector.view;
 
 
 import javafx.geometry.Pos;
@@ -9,13 +9,14 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import nivohub.devInspector.view.AppMenu;
+import nivohub.devInspector.model.User;
 
-public class Home {
+public class HomeScene extends BaseScene {
     private final User user;
     private final AppMenu appMenu;
 
-    public Home(User user, AppMenu appMenu) {
+    public HomeScene(User user, AppMenu appMenu) {
+        super(appMenu);
         this.user = user;
         this.appMenu = appMenu;
     }
@@ -32,5 +33,9 @@ public class Home {
         VBox vBox = new VBox(menuBar, appGrid);
 
         return new Scene(vBox, 960, 600);
+    }
+
+    @Override
+    public void setController(Object controller) {
     }
 }

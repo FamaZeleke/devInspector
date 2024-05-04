@@ -1,24 +1,13 @@
 package nivohub.devInspector;
 
 import javafx.application.Application;
-import javafx.geometry.Insets;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import javafx.geometry.Pos;
+import nivohub.devInspector.controller.LoginController;
 import nivohub.devInspector.controller.SceneController;
-import nivohub.devInspector.exceptions.FullNameException;
-import nivohub.devInspector.exceptions.PasswordException;
-import nivohub.devInspector.view.AppMenu;
+import nivohub.devInspector.model.User;
+import nivohub.devInspector.view.LoginScene;
 
 public class AppRoot extends Application {
-    private SceneController sceneController;
-    private Stage primaryStage;
-    private User user;
-    private String platform;
 
     public static void main(String[] args) {
         launch(args);
@@ -34,71 +23,17 @@ public class AppRoot extends Application {
             platform = "linux/arm64";
         }
 
-        // Store the platform in a field for later use
-        this.platform = platform;
+        SceneController sceneController = new SceneController(primaryStage);
 
-        this.sceneController = new SceneController(primaryStage);
-        this.primaryStage = primaryStage;
-        this.showLoginScene();
-        primaryStage.setTitle("Nivo Debugger Wizard");
+        LoginScene loginScene = new LoginScene();
+        User user = new User();
+        LoginController loginController = new LoginController(loginScene, user, sceneController);
+        loginScene.setController(loginController);
+        loginScene.setSubmitAction();
+
+        primaryStage.setScene(loginScene.createScene());
+        primaryStage.setTitle("Docker Wizard");
         primaryStage.show();
-    }
-
-    private void showLoginScene() {
-        Label welcomeLabel = new Label("Welcome");
-        welcomeLabel.setFont(Font.font("Inter", FontWeight.MEDIUM, 20));
-
-        Label nameLabel = new Label("Full Name");
-        TextField nameInput = new TextField();
-
-        Label passwordLabel = new Label("Password");
-        PasswordField passwordInput = new PasswordField();
-        passwordInput.setPromptText("Enter password");
-
-        Label errorMessage = new Label();
-        Button submitButton = new Button("Submit");
-
-        passwordInput.setOnAction(e -> submitButton.fire());
-        submitButton.setOnAction(event -> {
-            try {
-                user = new User();
-                user.setFullName(nameInput.getText());
-                user.validatePassword(passwordInput.getText());
-
-                // Create Home and DockerApplication instances after the user has logged in
-                Home home = new Home(user, new AppMenu(sceneController));
-                Scene homeScene = home.createScene();
-                this.sceneController.addScene("Home", homeScene);
-
-                DockerApplication dockerApplication = new DockerApplication(new AppMenu(sceneController));
-                Scene dockerScene = dockerApplication.createScene();
-                this.sceneController.addScene("Docker", dockerScene);
-
-                this.sceneController.showScene("Home");
-            } catch (FullNameException exception) {
-                errorMessage.setText(exception.getMessage()); // display error message
-            } catch (PasswordException e) {
-                errorMessage.setText(e.getMessage());
-            }
-        });
-
-        GridPane grid = new GridPane();
-        grid.setAlignment(Pos.CENTER);
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(25, 25, 25, 25));
-
-        grid.add(welcomeLabel, 0, 0);
-        grid.add(nameLabel, 0, 1);
-        grid.add(nameInput, 1, 1);
-        grid.add(passwordLabel, 0, 2);
-        grid.add(passwordInput, 1, 2);
-        grid.add(errorMessage, 1, 4);
-        grid.add(submitButton, 1, 3);
-
-
-        Scene scene = new Scene(grid, 600, 300);
-        this.primaryStage.setScene(scene);
     }
 
 }

@@ -1,11 +1,10 @@
-package nivohub.devInspector;
+package nivohub.devInspector.model;
 
 import nivohub.devInspector.exceptions.FullNameException;
 import nivohub.devInspector.exceptions.PasswordException;
 
 public class User {
     private String fullName;
-    private final String password = "letmein";
 
     public void setFullName(String fullName) throws FullNameException {
         if (fullName == null || !fullName.contains(" ")) {
@@ -18,10 +17,10 @@ public class User {
         return fullName;
     }
 
-    public boolean validatePassword(String password) throws PasswordException {
-        if (!password.equals(this.password)) {
-            throw new PasswordException("Please enter a valid password!");
+    public void validatePassword(String password) throws PasswordException {
+        String storedPassword = "letmein";
+        if (!password.equals(storedPassword)) {
+            throw new PasswordException("Please enter a valid password! Hint: letmein");
         }
-        return true;
     }
 }

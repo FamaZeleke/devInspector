@@ -1,0 +1,10 @@
+[
+  {
+    "image":"kale5/rickroll",
+    "tags":["latest","arm64"]
+  },
+    {
+        "image":"test",
+        "tags":["v1"]
+    }
+]

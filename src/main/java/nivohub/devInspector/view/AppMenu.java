@@ -1,5 +1,6 @@
 package nivohub.devInspector.view;
 
+import javafx.scene.Parent;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -29,5 +30,6 @@ public class AppMenu {
 
         return new MenuBar(mainMenu);
     }
+
 }
 
