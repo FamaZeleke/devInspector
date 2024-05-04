@@ -3,22 +3,36 @@ package nivohub.devInspector.view;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuBar;
+import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import nivohub.devInspector.controller.HomeController;
 import nivohub.devInspector.model.User;
 
+import java.util.Optional;
+
 public class HomeScene extends BaseScene {
+    private final Alert alert = new Alert(Alert.AlertType.ERROR);
     private final User user;
     private final AppMenu appMenu;
+    private HomeController controller;
 
     public HomeScene(User user, AppMenu appMenu) {
         super(appMenu);
-        this.user = user;
         this.appMenu = appMenu;
+        this.user = user;
+    }
+
+
+    @Override
+    public void setController(Object controller) {
+        if (controller instanceof HomeController) {
+            this.controller = (HomeController) controller;
+        } else {
+            throw new IllegalArgumentException("Controller must be a HomeController");
+        }
     }
 
     public Scene createScene() {
@@ -35,7 +49,4 @@ public class HomeScene extends BaseScene {
         return new Scene(vBox, 960, 600);
     }
 
-    @Override
-    public void setController(Object controller) {
-    }
 }
