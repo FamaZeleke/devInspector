@@ -11,10 +11,7 @@ import javafx.scene.text.FontWeight;
 import nivohub.devInspector.controller.HomeController;
 import nivohub.devInspector.model.User;
 
-import java.util.Optional;
-
 public class HomeScene extends BaseScene {
-    private final Alert alert = new Alert(Alert.AlertType.ERROR);
     private final User user;
     private final AppMenu appMenu;
     private HomeController controller;

@@ -28,32 +28,9 @@ public class DockerManager {
     private final String platform;
 
     public DockerManager(User user) {
-//        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).build();
-//        this.dockerClient = DockerClientBuilder.getInstance(config).build();
         this.platform = user.getPlatform();
         this.dockerClient = createDockerClient();
     }
-
-//    public DockerClient createDockerClient() {
-//        String dockerHost = System.getenv("DOCKER_HOST");
-//        if (dockerHost == null) {
-//            if (platform.equals("windows")) {
-//                dockerHost = "npipe:////./pipe/docker_engine";
-//            } else {
-//                dockerHost = "unix:///var/run/docker.sock";
-//            }
-//        }
-//        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
-//                .withDockerHost(dockerHost)
-//                .build();
-//        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-//                .dockerHost(config.getDockerHost())
-//                .sslConfig(config.getSSLConfig())
-//                .build();
-//        return DockerClientBuilder.getInstance(config)
-//                .withDockerHttpClient(httpClient)
-//                .build();
-//    };
 
     public DockerClient createDockerClient() {
         DockerClientConfig config;

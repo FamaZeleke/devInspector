@@ -3,7 +3,7 @@ package nivohub.devInspector.view;
 import javafx.scene.Scene;
 
 public abstract class BaseScene {
-    protected AppMenu appMenu;
+    protected final AppMenu appMenu;
 
     public BaseScene(AppMenu appMenu) {
         this.appMenu = appMenu;

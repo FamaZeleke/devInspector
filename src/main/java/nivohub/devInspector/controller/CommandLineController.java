@@ -16,7 +16,7 @@ public class CommandLineController {
 
         String cdCommand = "cd " + projectRootPath;
         String runCommand = "java -cp target/classes/ nivohub.devInspector.controller.CommandLineMenu";
-        String terminalCommand = "";
+        String terminalCommand;
 
         System.out.println("Running menu in terminal for platform: " + platform);
         try {
