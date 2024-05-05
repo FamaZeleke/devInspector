@@ -19,14 +19,14 @@ public class CommandLineController {
         String terminalCommand = "";
 
         System.out.println("Running menu in terminal for platform: " + platform);
-        if ("mac".contains(platform)) {
-            terminalCommand = "osascript -e 'tell app \"Terminal\" to do script \"" + cdCommand + " && " + runCommand + "\"'";
-        } else if ("windows".contains(platform)){
-            terminalCommand = "cmd.exe /c start cmd.exe /k \"cd " + projectRootPath + " && " + runCommand + "\"";
-        }
-
         try {
-            Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", terminalCommand });
+            if ("mac".contains(platform)) {
+                terminalCommand = "osascript -e 'tell app \"Terminal\" to do script \"" + cdCommand + " && " + runCommand + "\"'";
+                Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", terminalCommand });
+            } else if ("windows".contains(platform)){
+                terminalCommand = "cmd.exe /c start cmd.exe /k \"cd " + projectRootPath + " && " + runCommand + "\"";
+                Runtime.getRuntime().exec(new String[] { "cmd.exe", "/c", terminalCommand });
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
