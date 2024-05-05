@@ -2,6 +2,10 @@ package nivohub.devInspector.controller;
 
 import java.io.IOException;
 
+/**
+ * The CommandLineController class represents a controller for running a menu in the terminal.
+ * It provides functionality to execute commands in the terminal based on the platform.
+ */
 public class CommandLineController {
     private static String platform;
 

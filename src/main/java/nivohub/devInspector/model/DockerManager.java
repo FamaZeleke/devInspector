@@ -22,6 +22,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * The DockerManager class is responsible for managing Docker containers and interacting with the Docker API.
+ * It provides methods for creating a Docker client, reading image definitions, retrieving image names and tags,
+ * creating and running containers, streaming container logs, and checking if Docker is running.
+ */
 
 public class DockerManager {
     private final DockerClient dockerClient;
@@ -32,6 +37,10 @@ public class DockerManager {
         this.dockerClient = createDockerClient();
     }
 
+    /**
+     * Creates a DockerClient based on the platform.
+     * returns the DockerClient instance
+     */
     public DockerClient createDockerClient() {
         DockerClientConfig config;
         if (platform.equals("windows")) {
