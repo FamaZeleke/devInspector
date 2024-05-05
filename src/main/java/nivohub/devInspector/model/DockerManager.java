@@ -176,12 +176,10 @@ public class DockerManager {
     }
 
     public boolean isDockerRunning() {
-
         try {
             dockerClient.pingCmd().exec();
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
             return false;
         }
     }
