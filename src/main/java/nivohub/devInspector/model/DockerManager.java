@@ -16,6 +16,7 @@ import com.google.gson.reflect.TypeToken;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,13 +64,14 @@ public class DockerManager {
                     .build();
 
             DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-                .dockerHost(config.getDockerHost())
-                .sslConfig(config.getSSLConfig())
-                .build();
+                    .dockerHost(config.getDockerHost())
+                    .sslConfig(config.getSSLConfig())
+                    .connectionTimeout(Duration.ofSeconds(2))
+                    .build();
 
             return DockerClientBuilder.getInstance(config)
-                .withDockerHttpClient(httpClient)
-                .build();
+                    .withDockerHttpClient(httpClient)
+                    .build();
         } else {
             System.out.println("Creating Docker client for Unix/MacOs platform");
             config = DefaultDockerClientConfig.createDefaultConfigBuilder()
