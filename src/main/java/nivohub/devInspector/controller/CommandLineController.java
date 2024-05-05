@@ -18,17 +18,16 @@ public class CommandLineController {
         String projectRootPath = System.getProperty("user.dir");
         System.out.println("Project's root directory is: " + projectRootPath);
 
-        String cdCommand = "cd " + projectRootPath;
-        String runCommand = "java -cp target/classes/ nivohub.devInspector.controller.CommandLineMenu";
+        String runCommand = "java -cp " + projectRootPath + "/target/classes nivohub.devInspector.controller.CommandLineMenu";
         String terminalCommand;
 
         System.out.println("Running menu in terminal for platform: " + platform);
         try {
             if ("mac".contains(platform)) {
-                terminalCommand = "osascript -e 'tell app \"Terminal\" to do script \"" + cdCommand + " && " + runCommand + "\"'";
+                terminalCommand = "osascript -e 'tell app \"Terminal\" to do script \"" + runCommand + "\"'";
                 Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", terminalCommand });
             } else if ("windows".contains(platform)){
-                terminalCommand = "cmd.exe /c start cmd.exe /k \"cd " + projectRootPath + " && " + runCommand + "\"";
+                terminalCommand = "cmd.exe /c start cmd.exe /k \"" + runCommand + "\"";
                 Runtime.getRuntime().exec(new String[] { "cmd.exe", "/c", terminalCommand });
             }
         } catch (IOException e) {
