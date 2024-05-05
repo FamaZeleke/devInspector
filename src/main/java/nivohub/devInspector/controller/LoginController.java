@@ -17,13 +17,16 @@ public class LoginController {
     private final LoginScene view;
     private final User user;
     private final SceneController sceneController;
-    private final DockerManager dockerManager = new DockerManager();
+    private final CommandLineController commandLineController;
+    private final DockerManager dockerManager;
     private final AlertDialog alertDialog = new AlertDialog();
 
-    public LoginController(LoginScene view, User model, SceneController sceneController) {
+    public LoginController(LoginScene view, User model, SceneController sceneController, CommandLineController commandLineController) {
         this.view = view;
         this.user = model;
         this.sceneController = sceneController;
+        this.commandLineController= commandLineController;
+        this.dockerManager = new DockerManager(user);
     }
 
     public void validateAndSubmit(String fullName, String password) throws FullNameException, PasswordException {
@@ -60,7 +63,7 @@ public class LoginController {
     }
 
     private void constructScenes() {
-        AppMenu appMenu = new AppMenu(sceneController);
+        AppMenu appMenu = new AppMenu(sceneController, commandLineController);
         SceneFactory sceneFactory = new SceneFactory(user, appMenu, dockerManager);
         Scene homeScene = sceneFactory.createScene("Home");
         sceneController.addScene("Home", homeScene);

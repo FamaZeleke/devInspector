@@ -7,24 +7,64 @@ import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.transport.DockerHttpClient;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * The DockerManager class is responsible for managing Docker containers and interacting with the Docker API.
+ * It provides methods for creating a Docker client, reading image definitions, retrieving image names and tags,
+ * creating and running containers, streaming container logs, and checking if Docker is running.
+ */
 
 public class DockerManager {
     private final DockerClient dockerClient;
+    private final String platform;
 
-    public DockerManager() {
-        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).build();
-        this.dockerClient = DockerClientBuilder.getInstance(config).build();
+    public DockerManager(User user) {
+        this.platform = user.getPlatform();
+        this.dockerClient = createDockerClient();
+    }
+
+    /**
+     * Creates a DockerClient based on the platform.
+     * returns the DockerClient instance
+     */
+    public DockerClient createDockerClient() {
+        DockerClientConfig config;
+        if (platform.equals("windows")) {
+            System.out.println("Creating Docker client for Windows platform");
+            config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                    .withDockerHost("npipe:////./pipe/docker_engine")
+                    .build();
+
+            DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+                    .dockerHost(config.getDockerHost())
+                    .sslConfig(config.getSSLConfig())
+                    .connectionTimeout(Duration.ofSeconds(2))
+                    .build();
+
+            return DockerClientBuilder.getInstance(config)
+                    .withDockerHttpClient(httpClient)
+                    .build();
+        } else {
+            System.out.println("Creating Docker client for Unix/MacOs platform");
+            config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                    .withDockerTlsVerify(false)
+                    .build();
+            return DockerClientBuilder.getInstance(config).build();
+        }
     }
 
     private List<Map<String, Object>> readImageDefinitions() {

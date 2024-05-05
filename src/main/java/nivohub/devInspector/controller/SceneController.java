@@ -15,11 +15,6 @@ public class SceneController {
         this.primaryStage = primaryStage;
     }
 
-//    public void addScene(String name, SceneCreator creator) {
-//        Scene scene = creator.createScene();
-//        scenes.put(name, scene);
-//    }
-
     public void addScene(String name, Scene scene) {
         scenes.put(name, scene);
     }

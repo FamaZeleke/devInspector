@@ -2,6 +2,7 @@ package nivohub.devInspector;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+import nivohub.devInspector.controller.CommandLineController;
 import nivohub.devInspector.controller.LoginController;
 import nivohub.devInspector.controller.SceneController;
 import nivohub.devInspector.model.User;
@@ -17,17 +18,16 @@ public class AppRoot extends Application {
     public void start(Stage primaryStage) {
 
         String osArch = System.getProperty("os.arch");
-        String platform = "linux/amd64"; // default to amd64
+        String osName = System.getProperty("os.name").toLowerCase();
+        String platform = osName.contains("mac") ? "mac" : "windows";
 
-        if (osArch.contains("arm")) {
-            platform = "linux/arm64";
-        }
 
         SceneController sceneController = new SceneController(primaryStage);
+        CommandLineController commandLineController = new CommandLineController(platform);
 
         LoginScene loginScene = new LoginScene();
-        User user = new User();
-        LoginController loginController = new LoginController(loginScene, user, sceneController);
+        User user = new User(osArch, platform);
+        LoginController loginController = new LoginController(loginScene, user, sceneController, commandLineController);
         loginScene.setController(loginController);
         loginScene.setSubmitAction();
 
