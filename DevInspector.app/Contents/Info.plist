@@ -10,8 +10,8 @@
     <string>DevInspector</string>
     <key>CFBundleVersion</key>
     <string>1.0</string>
-    <key>CFBundleIconFile</key>
-    <string>DevInspector.icns</string>
+    <key>CFBundleIconName</key>
+    <string>icon</string>
     <key>LSUIElement</key>
     <true/>
 </dict>
