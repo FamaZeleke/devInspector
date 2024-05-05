@@ -8,6 +8,8 @@ import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.transport.DockerHttpClient;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -20,10 +22,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 
-
 public class DockerManager {
     private final DockerClient dockerClient;
     private final String platform;
+
     public DockerManager(User user) {
 //        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).build();
 //        this.dockerClient = DockerClientBuilder.getInstance(config).build();
@@ -31,17 +33,50 @@ public class DockerManager {
         this.dockerClient = createDockerClient();
     }
 
+//    public DockerClient createDockerClient() {
+//        String dockerHost = System.getenv("DOCKER_HOST");
+//        if (dockerHost == null) {
+//            if (platform.equals("windows")) {
+//                dockerHost = "npipe:////./pipe/docker_engine";
+//            } else {
+//                dockerHost = "unix:///var/run/docker.sock";
+//            }
+//        }
+//        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+//                .withDockerHost(dockerHost)
+//                .build();
+//        DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+//                .dockerHost(config.getDockerHost())
+//                .sslConfig(config.getSSLConfig())
+//                .build();
+//        return DockerClientBuilder.getInstance(config)
+//                .withDockerHttpClient(httpClient)
+//                .build();
+//    };
+
     public DockerClient createDockerClient() {
         DockerClientConfig config;
         if (platform.equals("windows")) {
+            System.out.println("Creating Docker client for Windows platform");
             config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                    .withDockerHost("npipe:////./pipe/docker_engine")
                     .build();
+
+            DockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
+                .dockerHost(config.getDockerHost())
+                .sslConfig(config.getSSLConfig())
+                .build();
+
+            return DockerClientBuilder.getInstance(config)
+                .withDockerHttpClient(httpClient)
+                .build();
         } else {
+            System.out.println("Creating Docker client for Unix/MacOs platform");
             config = DefaultDockerClientConfig.createDefaultConfigBuilder()
                     .withDockerTlsVerify(false)
                     .build();
+            return DockerClientBuilder.getInstance(config).build();
         }
-        return DockerClientBuilder.getInstance(config).build();
     }
 
     private List<Map<String, Object>> readImageDefinitions() {
@@ -141,10 +176,12 @@ public class DockerManager {
     }
 
     public boolean isDockerRunning() {
+
         try {
             dockerClient.pingCmd().exec();
             return true;
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
