@@ -129,8 +129,28 @@
                     <execution>
                         <id>make-assembly</id>
                         <phase>package</phase>
+
                         <goals>
                             <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <!-- replace with the actual paths -->
+                                <copy file="${project.build.directory}/devInspector-1.0-jar-with-dependencies.jar"
+                                      todir="${project.basedir}/DevInspector.app/Contents/Java" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
                         </goals>
                     </execution>
                 </executions>
