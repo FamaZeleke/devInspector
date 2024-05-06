@@ -2,28 +2,34 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>ClassPath</key>
-    <string>$APP_PACKAGE/Java/devInspector-1.0-jar-with-dependencies.jar</string>
-    <key>CFBundleExecutable</key>
-    <string>launch.sh</string>
-    <key>CFBundleIdentifier</key>
-    <string>nivohub.devInspector</string>
-    <key>CFBundleName</key>
-    <string>DevInspector</string>
-    <key>CFBundleVersion</key>
-    <string>1.0</string>
-    <key>CFBundleIconName</key>
-    <string>icon</string>
-    <key>CFBundleIconFile</key>
+	<key>ClassPath</key>
+	<string>$APP_PACKAGE/Java/devInspector-1.0-jar-with-dependencies.jar</string>
+	<key>CFBundleExecutable</key>
+	<string>launch.sh</string>
+	<key>CFBundleIdentifier</key>
+	<string>nivohub.devInspector</string>
+	<key>CFBundleName</key>
+	<string>DevInspector</string>
+	<key>CFBundleVersion</key>
+	<string>1.0</string>
+	<key>CFBundleIconName</key>
+	<string>icon</string>
+	<key>CFBundleIconFile</key>
 	<string>icon.icns</string>
-    <key>CFBundleDocumentTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleTypeIconFile</key>
-            <string>icon.icns</string>
-        </dict>
-    </array>
-    <key>LSUIElement</key>
-    <true/>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeIconFile</key>
+			<string>icon.icns</string>
+		</dict>
+	</array>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.developer-tools</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>UIPrerenderedIcon</key>
+	<false/>
 </dict>
 </plist>
