@@ -109,32 +109,28 @@ public class DockerScene extends BaseScene {
         configurationLabel.setFont(new Font(18));
         configurationLabel.setTextFill(Color.color(0.624, 0.624, 0.624));
 
-        VBox leftVBox = new VBox(24);
-        leftVBox.setLayoutX(14);
-        leftVBox.setLayoutY(43);
+        TabPane tabPane = new TabPane();
+        tabPane.setLayoutX(14);
+        tabPane.setLayoutY(43);
 
+        // Predefined list tab
+        Tab predefinedListTab = new Tab("Predefined List");
+        VBox predefinedListVBox = new VBox(24);
+        predefinedListVBox.getChildren().addAll(imageSelection, tagSelection, containerName, hostPort, exposedPort, editVolumesButton, runButton);
+        predefinedListTab.setContent(predefinedListVBox);
+
+        //TODO resolve ui issues and work out conditionality
+
+        // Dockerfile tab
+        Tab dockerfileTab = new Tab("Dockerfile");
+        VBox dockerfileVBox = new VBox(24);
         uploadButton.setOnAction(this::eventOnFileUpload);
-        uploadButton.setPrefWidth(150);
+        dockerfileVBox.getChildren().addAll(uploadButton, containerName, hostPort, exposedPort, editVolumesButton, runButton);
+        dockerfileTab.setContent(dockerfileVBox);
 
-        imageSelection.setPrefWidth(150);
-        imageSelection.setPromptText("Select Image");
-        tagSelection.setPrefWidth(150);
-        tagSelection.setPromptText("Select Tag");
+        tabPane.getTabs().addAll(predefinedListTab, dockerfileTab);
 
-        containerName.setPrefWidth(150);
-        containerName.setPromptText("Container Name");
-
-        hostPort.setPrefWidth(150);
-        hostPort.setPromptText("Host Port e.g. 8080");
-        exposedPort.setPrefWidth(150);
-        exposedPort.setPromptText("Exposed Port e.g. 80");
-        editVolumesButton.setPrefWidth(150);
-        editVolumesButton.setOnAction(e -> showDirectoryChooserDialog());
-
-
-
-        leftVBox.getChildren().addAll(uploadButton, imageSelection, tagSelection, containerName, hostPort, exposedPort, editVolumesButton, runButton);
-        leftPane.getChildren().addAll(configurationLabel, leftVBox);
+        leftPane.getChildren().addAll(configurationLabel, tabPane);
         return leftPane;
     }
 

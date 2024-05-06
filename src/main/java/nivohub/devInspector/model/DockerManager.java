@@ -2,6 +2,7 @@ package nivohub.devInspector.model;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
+import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.InternalServerErrorException;
@@ -9,6 +10,7 @@ import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.core.dockerfile.Dockerfile;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.google.gson.Gson;
@@ -71,8 +73,18 @@ public class DockerManager {
         }
     }
 
+    public boolean isDockerRunning() {
+        try {
+            dockerClient.pingCmd().exec();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private List<Map<String, Object>> readImageDefinitions() {
-        Type listType = new TypeToken<List<Map<String, Object>>>(){}.getType();
+        Type listType = new TypeToken<List<Map<String, Object>>>() {
+        }.getType();
         try {
             return readFromJsonFile(IMAGE_DEFINITIONS_FILE, listType);
         } catch (IOException e) {
@@ -130,8 +142,8 @@ public class DockerManager {
         Ports.Binding binding = Ports.Binding.bindPort(hostPort);
         ExposedPort tcpPort = ExposedPort.tcp(exposedPort);
 
-       return HostConfig.newHostConfig()
-               .withPortBindings(new PortBinding(binding, tcpPort));
+        return HostConfig.newHostConfig()
+                .withPortBindings(new PortBinding(binding, tcpPort));
     }
 
     private String createContainer(String imageName, String tag, String containerName, HostConfig hostConfig) {
@@ -147,10 +159,23 @@ public class DockerManager {
             dockerClient.startContainerCmd(containerId).exec();
         } catch (InternalServerErrorException e) {
             if (e.getMessage().contains("port is already allocated")) {
-                throw new BindingPortAlreadyAllocatedException("Port is already allocated"+containerId);
+                throw new BindingPortAlreadyAllocatedException("Port is already allocated" + containerId);
             }
             throw e;
         }
+    }
+
+    public void buildImageFromDockerfile(File file) {
+        dockerClient.buildImageCmd()
+                .withDockerfile(file)
+                .exec(new BuildImageResultCallback() {
+                    @Override
+                    public void onNext(BuildResponseItem item) {
+                        super.onNext(item);
+                        System.out.println("" + item.getStream());
+                    }
+                })
+                .awaitImageId();
     }
 
     public void streamContainerLogs(String containerId, Consumer<String> logHandler) {
@@ -183,14 +208,4 @@ public class DockerManager {
             logHandler.accept("Failed to start log streaming for container " + containerId + ": " + e.getMessage());
         }
     }
-
-    public boolean isDockerRunning() {
-        try {
-            dockerClient.pingCmd().exec();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
 }

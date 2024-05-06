@@ -98,6 +98,6 @@ public class DockerController {
 
 
     public void handleFileUpload(File file) {
-        // Handle file upload
+        model.buildImageFromDockerfile(file);
     }
 }
