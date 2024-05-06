@@ -16,19 +16,25 @@ public class CommandLineController {
 
     public void runMenuInTerminal() {
         String projectRootPath = System.getProperty("user.dir");
-        System.out.println("Project's root directory is: " + projectRootPath);
+        String classpath;
+        if (projectRootPath.endsWith("/Contents")) {
+            // The application is running from the .app bundle
+            classpath = projectRootPath + "/Java/devInspector-1.0-jar-with-dependencies.jar";
+        } else {
+            // The application is not running from the .app bundle
+            classpath = projectRootPath + "/target/classes";
+        }
 
-        String cdCommand = "cd " + projectRootPath;
-        String runCommand = "java -cp target/classes/ nivohub.devInspector.controller.CommandLineMenu";
+        String runCommand = "java -cp " + classpath + " nivohub.devInspector.controller.CommandLineMenu";
         String terminalCommand;
 
         System.out.println("Running menu in terminal for platform: " + platform);
         try {
             if ("mac".contains(platform)) {
-                terminalCommand = "osascript -e 'tell app \"Terminal\" to do script \"" + cdCommand + " && " + runCommand + "\"'";
+                terminalCommand = "osascript -e 'tell app \"Terminal\" to do script \"" + runCommand + "\"'";
                 Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", terminalCommand });
             } else if ("windows".contains(platform)){
-                terminalCommand = "cmd.exe /c start cmd.exe /k \"cd " + projectRootPath + " && " + runCommand + "\"";
+                terminalCommand = "cmd.exe /c start cmd.exe /k \"" + runCommand + "\"";
                 Runtime.getRuntime().exec(new String[] { "cmd.exe", "/c", terminalCommand });
             }
         } catch (IOException e) {

@@ -1,6 +1,7 @@
 package nivohub.devInspector;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.stage.Stage;
 import nivohub.devInspector.controller.CommandLineController;
 import nivohub.devInspector.controller.LoginController;
@@ -32,8 +33,10 @@ public class AppRoot extends Application {
         loginScene.setSubmitAction();
 
         primaryStage.setScene(loginScene.createScene());
-        primaryStage.setTitle("Docker Wizard");
+        primaryStage.setTitle("DevInspector");
         primaryStage.show();
+        
+        Platform.runLater(primaryStage::requestFocus);
     }
 
 }
