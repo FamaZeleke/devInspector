@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import nivohub.devInspector.view.DockerScene;
 import nivohub.devInspector.model.DockerManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -84,7 +85,7 @@ public class DockerController {
     }
 
 
-
-
-
+    public void handleFileUpload(File file) {
+        // Handle file upload
+    }
 }

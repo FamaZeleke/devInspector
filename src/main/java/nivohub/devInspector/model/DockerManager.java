@@ -29,6 +29,8 @@ import java.util.function.Consumer;
  */
 
 public class DockerManager {
+    private static final String IMAGE_DEFINITIONS_FILE = "imageDefinitions.json";
+    private static final Gson GSON_READER = new Gson();
     private final DockerClient dockerClient;
     private final String platform;
 
@@ -68,18 +70,21 @@ public class DockerManager {
     }
 
     private List<Map<String, Object>> readImageDefinitions() {
-        Type listType = new TypeToken<List<Map<String, Object>>>() {
-        }.getType();
+        Type listType = new TypeToken<List<Map<String, Object>>>(){}.getType();
         try {
-            InputStream is = getClass().getClassLoader().getResourceAsStream("imageDefinitions.json");
-            if (is == null) {
-                throw new FileNotFoundException("Could not find 'imageDefinitions.json' in resources directory");
-            }
-            InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
-            return new Gson().fromJson(isr, listType);
+            return readFromJsonFile(IMAGE_DEFINITIONS_FILE, listType);
         } catch (IOException e) {
             throw new RuntimeException("Failed to read image definitions from JSON file", e);
         }
+    }
+
+    private <T> T readFromJsonFile(String fileName, Type typeOfT) throws IOException {
+        InputStream is = getClass().getClassLoader().getResourceAsStream(fileName);
+        if (is == null) {
+            throw new FileNotFoundException(String.format("Could not find '%s' in resources directory", fileName));
+        }
+        InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
+        return GSON_READER.fromJson(isr, typeOfT);
     }
 
     public List<String> getImageNames() {

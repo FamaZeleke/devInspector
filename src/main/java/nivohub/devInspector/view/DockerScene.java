@@ -1,24 +1,42 @@
 package nivohub.devInspector.view;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import nivohub.devInspector.controller.DockerController;
 
+import java.io.File;
+
 public class DockerScene extends BaseScene {
+    private final Accordion containerDetailsAccordion = new Accordion();
+    private final AppMenu appMenu;
     private final VBox layout = new VBox();
+    private final ListView<String> outputArea = new ListView<>();
+    private final ListView<String> volumeDirList = new ListView<>();
+    private final ObservableList<String> volumeDirItems = volumeDirList.getItems();
     private final ComboBox<String> imageSelection = new ComboBox<>();
+    private final ComboBox<String> tagSelection = new ComboBox<>();
     private final TextField exposedPort = new TextField();
     private final TextField hostPort = new TextField();
-    private final ComboBox<String> tagSelection = new ComboBox<>();
+    private final Image uploadIcon = new Image("/icon/file-up.png");
+    private final ImageView uploadIconView = new ImageView(uploadIcon);
     private final Button runButton = new Button("Run");
-    private final ListView<String> outputArea = new ListView<>();
-    private final AppMenu appMenu;
-    private final Accordion containerDetailsAccordion = new Accordion();
+    private final Button uploadButton = new Button("", uploadIconView);
+    private final Button editVolumesButton = new Button("Edit Volumes");
+    private final Button addVolumeDirButton = new Button("Add Volume Directory");
+    private final Button removeDirectoryButton = new Button("Remove Selected Directory");
     private DockerController controller;
 
     public DockerScene(AppMenu appMenu) {
@@ -38,45 +56,37 @@ public class DockerScene extends BaseScene {
     @Override
     public Scene createScene(){
         layout.setPrefSize(900, 600);
+        SplitPane splitPane = createSplitPane();
+        HBox statusBar = setupStatusBar();
+        MenuBar menuBar = appMenu.createMenu();
 
-        //Layout
+        layout.getChildren().addAll(menuBar, splitPane, statusBar);
+        return new Scene(layout);
+    }
+
+    private SplitPane createSplitPane() {
         SplitPane splitPane = new SplitPane();
         VBox.setVgrow(splitPane, Priority.ALWAYS);
         splitPane.setDividerPositions(0.25, 0.75);
+        splitPane.getItems().addAll(
+                setupLeftPane(),
+                setupCenterPane(),
+                setupRightPane());
+        return splitPane;
+    }
 
-        // Left pane
-        AnchorPane leftPane = new AnchorPane();
-        Label configurationLabel = new Label("Configuration");
-        configurationLabel.setLayoutX(14);
-        configurationLabel.setLayoutY(14);
-        configurationLabel.setFont(new Font(18));
-        configurationLabel.setTextFill(Color.color(0.624, 0.624, 0.624));
+    private static HBox setupStatusBar() {
+        HBox statusBar = new HBox();
+        Label leftStatus = new Label("Left status");
+        Label rightStatus = new Label("Right status");
+        Pane spacer = new Pane();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        statusBar.getChildren().addAll(leftStatus, spacer, rightStatus);
+        statusBar.setPadding(new Insets(3));
+        return statusBar;
+    }
 
-
-        //Left Content
-        VBox leftVBox = new VBox(24);
-        leftVBox.setLayoutX(14);
-        leftVBox.setLayoutY(43);
-        imageSelection.setPrefWidth(150);
-        tagSelection.setPrefWidth(150);
-        hostPort.setPrefWidth(150);
-        hostPort.setPromptText("Host Port e.g. 8080");
-        exposedPort.setPrefWidth(150);
-        exposedPort.setPromptText("Exposed Port e.g. 80");
-        leftVBox.getChildren().addAll(imageSelection, tagSelection, hostPort, exposedPort, runButton);
-        leftPane.getChildren().addAll(configurationLabel, leftVBox);
-
-
-        // Center pane
-        AnchorPane centerPane = new AnchorPane();
-        outputArea.setPrefSize(200, 200); // Set preferred size as needed
-        AnchorPane.setTopAnchor(outputArea, 0.0);
-        AnchorPane.setRightAnchor(outputArea, 0.0);
-        AnchorPane.setBottomAnchor(outputArea, 0.0);
-        AnchorPane.setLeftAnchor(outputArea, 0.0);
-        centerPane.getChildren().add(outputArea);
-
-        // Right pane
+    private AnchorPane setupRightPane() {
         VBox rightVBox = new VBox();
         rightVBox.setLayoutX(14);
         rightVBox.setLayoutY(43);
@@ -86,20 +96,106 @@ public class DockerScene extends BaseScene {
         AnchorPane.setBottomAnchor(containerDetailsAccordion, 0.0);
         AnchorPane.setLeftAnchor(containerDetailsAccordion, 0.0);
         rightPane.getChildren().add(containerDetailsAccordion);
+        return rightPane;
+    }
 
-        splitPane.getItems().addAll(leftPane, centerPane, rightPane);
+    private AnchorPane setupLeftPane() {
+        AnchorPane leftPane = new AnchorPane();
 
-        HBox statusBar = new HBox();
-        Label leftStatus = new Label("Left status");
-        Label rightStatus = new Label("Right status");
-        Pane spacer = new Pane();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        statusBar.getChildren().addAll(leftStatus, spacer, rightStatus);
-        statusBar.setPadding(new Insets(3));
+        Label configurationLabel = new Label("Configuration");
+        configurationLabel.setLayoutX(14);
+        configurationLabel.setLayoutY(10);
+        configurationLabel.setFont(new Font(18));
+        configurationLabel.setTextFill(Color.color(0.624, 0.624, 0.624));
 
-        MenuBar menuBar = appMenu.createMenu();
-        layout.getChildren().addAll(menuBar, splitPane, statusBar);
-        return new Scene(layout);
+        VBox leftVBox = new VBox(24);
+        leftVBox.setLayoutX(14);
+        leftVBox.setLayoutY(43);
+
+        uploadButton.setOnAction(this::eventOnFileUpload);
+        uploadButton.setPrefWidth(150);
+
+        imageSelection.setPrefWidth(150);
+        imageSelection.setPromptText("Select Image");
+        tagSelection.setPrefWidth(150);
+        tagSelection.setPromptText("Select Tag");
+        hostPort.setPrefWidth(150);
+        hostPort.setPromptText("Host Port e.g. 8080");
+        exposedPort.setPrefWidth(150);
+        exposedPort.setPromptText("Exposed Port e.g. 80");
+        editVolumesButton.setPrefWidth(150);
+        editVolumesButton.setOnAction(e -> showDirectoryChooserDialog());
+
+
+
+        leftVBox.getChildren().addAll(uploadButton, imageSelection, tagSelection, hostPort, exposedPort, editVolumesButton, runButton);
+        leftPane.getChildren().addAll(configurationLabel, leftVBox);
+        return leftPane;
+    }
+
+    private AnchorPane setupCenterPane() {
+        AnchorPane centerPane = new AnchorPane();
+        outputArea.setPrefSize(200, 200); // Set preferred size as needed
+        AnchorPane.setTopAnchor(outputArea, 0.0);
+        AnchorPane.setRightAnchor(outputArea, 0.0);
+        AnchorPane.setBottomAnchor(outputArea, 0.0);
+        AnchorPane.setLeftAnchor(outputArea, 0.0);
+        centerPane.getChildren().add(outputArea);
+        return centerPane;
+    }
+
+    private VBox setupDirectoryChooser() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select Directory for Volume Binding");
+
+        addVolumeDirButton.setOnAction(e -> handleAddDirectory(directoryChooser));
+        removeDirectoryButton.setOnAction(e -> handleRemoveDirectory());
+
+        HBox buttonBox = new HBox();
+        buttonBox.setSpacing(28);
+        buttonBox.getChildren().addAll(addVolumeDirButton, removeDirectoryButton);
+
+        volumeDirList.setItems(volumeDirItems);
+
+        VBox directoryChooserUI = new VBox();
+        directoryChooserUI.getChildren().addAll(buttonBox, volumeDirList);
+
+        return directoryChooserUI;
+    }
+
+    private void handleRemoveDirectory() {
+        int selectedIndex = volumeDirList.getSelectionModel().getSelectedIndex();
+        if (selectedIndex != -1) {
+            volumeDirItems.remove(selectedIndex);
+        }
+    }
+
+    private void handleAddDirectory(DirectoryChooser directoryChooser) {
+        File selectedDirectory = directoryChooser.showDialog(null);
+        if (selectedDirectory != null) {
+            volumeDirItems.add(selectedDirectory.getAbsolutePath());
+        }
+    }
+
+    private void showDirectoryChooserDialog() {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+
+        VBox vbox = setupDirectoryChooser();
+
+        Scene dialogScene = new Scene(vbox, 330, 200);
+        dialog.setScene(dialogScene);
+        dialog.show();
+    }
+
+    private void eventOnFileUpload(ActionEvent e) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Dockerfile");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Dockerfile", "*"));
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            controller.handleFileUpload(file);
+        }
     }
 
     public void addContainerDetails(String containerId, int hostPort) {
@@ -124,7 +220,6 @@ public class DockerScene extends BaseScene {
 
         Platform.runLater(() -> containerDetailsAccordion.getPanes().add(containerPane));
     }
-
 
     // Getter for the image selection dropdown
     public ComboBox<String> getImageSelection() {
@@ -151,6 +246,10 @@ public class DockerScene extends BaseScene {
 
     public ListView<String> getOutputArea() {
         return outputArea;
+    }
+
+    public ListView<String> getVolumeDirList() {
+        return volumeDirList;
     }
 
 }
