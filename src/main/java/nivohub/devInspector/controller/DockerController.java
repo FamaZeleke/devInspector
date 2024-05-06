@@ -1,6 +1,7 @@
 package nivohub.devInspector.controller;
 
 import javafx.application.Platform;
+import nivohub.devInspector.exceptions.BindingPortAlreadyAllocatedException;
 import nivohub.devInspector.view.DockerScene;
 import nivohub.devInspector.model.DockerManager;
 
@@ -55,12 +56,19 @@ public class DockerController {
             int hostPort = Integer.parseInt(view.getHostPort().getText());
             int exposedPort = Integer.parseInt(view.getExposedPort().getText());
             String selectedTag = view.getTagSelection().getSelectionModel().getSelectedItem();
+            String containerName = view.getContainerName().getText();
 
-            String containerId = model.createAndRunContainer(selectedImage, selectedTag, hostPort, exposedPort);
+            String containerId = null;
+            try {
+                containerId = model.createAndRunContainer(selectedImage, selectedTag, containerName, hostPort, exposedPort);
+            } catch (BindingPortAlreadyAllocatedException error) {
+                sendErrorToOutputArea(error.getMessage());
+            }
             if (containerId != null) {
+                String finalContainerId = containerId;
                 Platform.runLater(() -> {
-                    view.addContainerDetails(containerId, hostPort);
-                    view.getOutputArea().getItems().add("Created and started container with ID: " + containerId);
+                    view.addContainerDetails(finalContainerId, hostPort);
+                    view.getOutputArea().getItems().add("Created and started container with ID: " + finalContainerId);
                 });
                 streamContainerLogs(containerId);
             }
@@ -70,6 +78,10 @@ public class DockerController {
     // Lambda Expression
     private void streamContainerLogs(String containerId) {
         model.streamContainerLogs(containerId, logMessage -> Platform.runLater(() -> view.getOutputArea().getItems().add(logMessage)));
+    }
+
+    private void sendErrorToOutputArea(String errorMessage) {
+        Platform.runLater(() -> view.getOutputArea().getItems().add("ERROR: " + errorMessage));
     }
 
 

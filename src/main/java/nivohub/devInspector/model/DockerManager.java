@@ -4,6 +4,7 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.exception.InternalServerErrorException;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
@@ -12,6 +13,7 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import nivohub.devInspector.exceptions.BindingPortAlreadyAllocatedException;
 
 import java.io.*;
 import java.lang.reflect.Type;
@@ -106,35 +108,49 @@ public class DockerManager {
         return new ArrayList<>();
     }
 
-    public String createAndRunContainer(String imageName, String tag, int hostPort, int exposedPort) {
+    public String createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException {
+        pullImage(imageName, tag);
+        HostConfig hostConfig = configurePortBindings(hostPort, exposedPort);
+        String containerId = createContainer(imageName, tag, containerName, hostConfig);
+        startContainer(containerId);
+        return containerId;
+    }
+
+    private void pullImage(String imageName, String tag) {
         try {
-            // Pull the image from Docker Hub
             dockerClient.pullImageCmd(imageName + ":" + tag)
                     .exec(new PullImageResultCallback())
                     .awaitCompletion();
-
-            // Setup port configuration
-            Ports.Binding binding = Ports.Binding.bindPort(hostPort);
-            ExposedPort tcpPort = ExposedPort.tcp(exposedPort);
-
-            HostConfig hostConfig = HostConfig.newHostConfig()
-                    .withPortBindings(new PortBinding(binding, tcpPort));
-
-            CreateContainerResponse container = dockerClient.createContainerCmd(imageName + ":" + tag)
-                    .withHostConfig(hostConfig)
-                    .exec();
-
-            String containerId = container.getId();
-
-            // Start the container
-            dockerClient.startContainerCmd(containerId).exec();
-
-            System.out.println("Container started with ID: " + containerId);
-            return containerId;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-        return null;
+    }
+
+    private HostConfig configurePortBindings(int hostPort, int exposedPort) {
+        Ports.Binding binding = Ports.Binding.bindPort(hostPort);
+        ExposedPort tcpPort = ExposedPort.tcp(exposedPort);
+
+       return HostConfig.newHostConfig()
+               .withPortBindings(new PortBinding(binding, tcpPort));
+    }
+
+    private String createContainer(String imageName, String tag, String containerName, HostConfig hostConfig) {
+        CreateContainerResponse container = dockerClient.createContainerCmd(imageName + ":" + tag)
+                .withHostConfig(hostConfig)
+                .withName(containerName)
+                .exec();
+        return container.getId();
+    }
+
+    private void startContainer(String containerId) throws BindingPortAlreadyAllocatedException {
+        try {
+            dockerClient.startContainerCmd(containerId).exec();
+        } catch (InternalServerErrorException e) {
+            if (e.getMessage().contains("port is already allocated")) {
+                throw new BindingPortAlreadyAllocatedException("Port is already allocated"+containerId);
+            }
+            throw e;
+        }
     }
 
     public void streamContainerLogs(String containerId, Consumer<String> logHandler) {

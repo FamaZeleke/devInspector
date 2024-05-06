@@ -37,6 +37,7 @@ public class DockerScene extends BaseScene {
     private final Button editVolumesButton = new Button("Edit Volumes");
     private final Button addVolumeDirButton = new Button("Add Volume Directory");
     private final Button removeDirectoryButton = new Button("Remove Selected Directory");
+    private final TextField containerName = new TextField();
     private DockerController controller;
 
     public DockerScene(AppMenu appMenu) {
@@ -119,6 +120,10 @@ public class DockerScene extends BaseScene {
         imageSelection.setPromptText("Select Image");
         tagSelection.setPrefWidth(150);
         tagSelection.setPromptText("Select Tag");
+
+        containerName.setPrefWidth(150);
+        containerName.setPromptText("Container Name");
+
         hostPort.setPrefWidth(150);
         hostPort.setPromptText("Host Port e.g. 8080");
         exposedPort.setPrefWidth(150);
@@ -128,7 +133,7 @@ public class DockerScene extends BaseScene {
 
 
 
-        leftVBox.getChildren().addAll(uploadButton, imageSelection, tagSelection, hostPort, exposedPort, editVolumesButton, runButton);
+        leftVBox.getChildren().addAll(uploadButton, imageSelection, tagSelection, containerName, hostPort, exposedPort, editVolumesButton, runButton);
         leftPane.getChildren().addAll(configurationLabel, leftVBox);
         return leftPane;
     }
@@ -252,4 +257,7 @@ public class DockerScene extends BaseScene {
         return volumeDirList;
     }
 
+    public TextField getContainerName() {
+        return containerName;
+    }
 }
