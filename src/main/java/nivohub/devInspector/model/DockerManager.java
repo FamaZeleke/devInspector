@@ -10,7 +10,6 @@ import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.dockerfile.Dockerfile;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.google.gson.Gson;
@@ -86,16 +85,16 @@ public class DockerManager {
         Type listType = new TypeToken<List<Map<String, Object>>>() {
         }.getType();
         try {
-            return readFromJsonFile(IMAGE_DEFINITIONS_FILE, listType);
+            return readFromJsonFile(listType);
         } catch (IOException e) {
             throw new RuntimeException("Failed to read image definitions from JSON file", e);
         }
     }
 
-    private <T> T readFromJsonFile(String fileName, Type typeOfT) throws IOException {
-        InputStream is = getClass().getClassLoader().getResourceAsStream(fileName);
+    private <T> T readFromJsonFile(Type typeOfT) throws IOException {
+        InputStream is = getClass().getClassLoader().getResourceAsStream(DockerManager.IMAGE_DEFINITIONS_FILE);
         if (is == null) {
-            throw new FileNotFoundException(String.format("Could not find '%s' in resources directory", fileName));
+            throw new FileNotFoundException(String.format("Could not find '%s' in resources directory", DockerManager.IMAGE_DEFINITIONS_FILE));
         }
         InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
         return GSON_READER.fromJson(isr, typeOfT);
