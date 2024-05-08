@@ -37,7 +37,7 @@ public class DockerManager {
     private final DockerClient dockerClient;
     private final String platform;
 
-    public DockerManager(User user) {
+    public DockerManager(UserModel user) {
         this.platform = user.getPlatform();
         this.dockerClient = createDockerClient();
     }

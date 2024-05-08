@@ -9,21 +9,19 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import nivohub.devInspector.controller.HomeController;
-import nivohub.devInspector.model.User;
+import nivohub.devInspector.model.UserModel;
 
-public class HomeScene extends BaseScene {
-    private final User user;
+public class HomeScene {
+    private final UserModel user;
     private final AppMenu appMenu;
     private HomeController controller;
 
-    public HomeScene(User user, AppMenu appMenu) {
-        super(appMenu);
+    public HomeScene(UserModel user, AppMenu appMenu) {
         this.appMenu = appMenu;
         this.user = user;
     }
 
 
-    @Override
     public void setController(Object controller) {
         if (controller instanceof HomeController) {
             this.controller = (HomeController) controller;

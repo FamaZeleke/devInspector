@@ -24,7 +24,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class DockerScene extends BaseScene {
+public class DockerScene {
     private final Accordion containerDetailsAccordion = new Accordion();
     private final AppMenu appMenu;
     private final VBox layout = new VBox();
@@ -56,7 +56,6 @@ public class DockerScene extends BaseScene {
     private DockerController controller;
 
     public DockerScene(AppMenu appMenu) {
-        super(appMenu);
         this.appMenu = appMenu;
     }
 
@@ -71,7 +70,6 @@ public class DockerScene extends BaseScene {
         return statusBar;
     }
 
-    @Override
     public void setController(Object controller) {
         if (controller instanceof DockerController) {
             this.controller = (DockerController) controller;
@@ -81,7 +79,6 @@ public class DockerScene extends BaseScene {
     }
 
     // Main method to create the scene
-    @Override
     public Scene createScene() {
         layout.setPrefSize(900, 600);
         SplitPane splitPane = createSplitPane();

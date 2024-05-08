@@ -18,7 +18,7 @@ import nivohub.devInspector.controller.LoginController;
  * The scene contains UI elements such as labels, text fields, and buttons for user input and interaction.
  * The class provides methods to retrieve user input, set error messages, and handle submit actions.
  */
-public class LoginScene extends BaseScene {
+public class LoginScene extends Scene {
     private final Label welcomeLabel = new Label("Welcome");
     private final Label nameLabel = new Label("Full Name");
     private final TextField nameInput = new TextField();
@@ -33,7 +33,6 @@ public class LoginScene extends BaseScene {
         super(null);
     }
 
-    @Override
     public void setController(Object controller) {
         if (controller instanceof LoginController) {
             this.controller = (LoginController) controller;
@@ -42,7 +41,6 @@ public class LoginScene extends BaseScene {
         }
     }
 
-    @Override
     public Scene createScene() {
         welcomeLabel.setFont(Font.font("Inter", FontWeight.MEDIUM, 20));
         passwordInput.setPromptText("Enter password");
@@ -80,7 +78,7 @@ public class LoginScene extends BaseScene {
     public void setSubmitAction() {
         nameInput.setOnAction(e -> submitButton.fire());
         passwordInput.setOnAction(e -> submitButton.fire());
-        submitButton.setOnAction(e -> controller.handleSubmit());
+//        submitButton.setOnAction(e -> controller.handleSubmit());
     }
 
 }
