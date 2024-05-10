@@ -14,9 +14,14 @@ public class LoginInteractor {
         return model.getPassword().equals(model.getValidPassword());
     }
 
-    public boolean loginUser(){
-        System.out.println("User Logged in!");
-        return isPasswordValid();
+    public boolean attemptLogin(){
+        if (isPasswordValid()){
+            model.loginFailedProperty().set(false);
+            System.out.println("Password is valid!");
+            return true;
+        } else {
+            model.loginFailedProperty().set(true);
+            return false;
+        }
     }
-
 }

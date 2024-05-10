@@ -15,16 +15,14 @@ import javafx.scene.text.FontWeight;
 import javafx.util.Builder;
 import nivohub.devInspector.model.UserModel;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 
 public class LoginViewBuilder implements Builder<Region> {
 
     private final UserModel model;
-    private final Supplier<Boolean> loginHandler;
+    private final Runnable loginHandler;
 
-    public LoginViewBuilder(UserModel model, Supplier<Boolean> loginHandler) {
+    public LoginViewBuilder(UserModel model, Runnable loginHandler) {
         this.model = model;
         this.loginHandler = loginHandler;
     }
@@ -52,12 +50,7 @@ public class LoginViewBuilder implements Builder<Region> {
 
     private Node createLoginButton() {
         Button loginButton = new Button("Login");
-        loginButton.setOnAction(event -> {
-            boolean loginSuccessful = loginHandler.get();
-            if (!loginSuccessful) {
-                System.out.println("Invalid password");
-            }
-        });
+        loginButton.setOnAction(event -> {loginHandler.run();});
         return loginButton;
     }
 
@@ -76,8 +69,9 @@ public class LoginViewBuilder implements Builder<Region> {
     }
 
     private Node errorMessage(){
-        Label label = new Label();
+        Label label = new Label("Invalid login credentials. Please try again... tip letmein");
         label.setTextFill(Color.RED);
+        label.visibleProperty().bind(model.loginFailedProperty());
         return label;
     }
 

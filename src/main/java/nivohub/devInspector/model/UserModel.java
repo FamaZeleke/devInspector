@@ -9,6 +9,7 @@ public class UserModel {
     private StringProperty fullName = new SimpleStringProperty("");
     private StringProperty password = new SimpleStringProperty("");
     private final BooleanProperty passwordValid = new SimpleBooleanProperty(false);
+    private BooleanProperty loginFailed = new SimpleBooleanProperty(this, "loginFailed", false);
     private final String validPassword = "letmein";
 //    private final String osArch;
 //    private final String platform;
@@ -17,6 +18,10 @@ public class UserModel {
 //        this.osArch = osArch;
 //        this.platform = platform;
 //    }
+
+    public BooleanProperty loginFailedProperty(){
+        return loginFailed;
+    }
 
     public BooleanProperty passwordValidProperty(){
         return passwordValid;

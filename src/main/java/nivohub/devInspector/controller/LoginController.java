@@ -8,8 +8,6 @@ import nivohub.devInspector.interactor.LoginInteractor;
 import nivohub.devInspector.model.UserModel;
 import nivohub.devInspector.view.LoginViewBuilder;
 
-import java.util.concurrent.ExecutionException;
-
 public class LoginController {
 //    private final LoginScene view;
 //    private final User user;
@@ -23,22 +21,21 @@ public class LoginController {
         viewBuilder = new LoginViewBuilder(model, this::loginUser);
     }
 
-    private Boolean loginUser() {
+    private void loginUser() {
         Task<Boolean> loginTask = new Task<>() {
             @Override
             protected Boolean call() throws PasswordException {
-                return interactor.loginUser();
+                return interactor.attemptLogin();
             }
         };
+        loginTask.setOnSucceeded(e -> {loginTask.getValue();});
+        loginTask.setOnFailed(e -> {
+            // Handle error
+            e.getSource().getException().printStackTrace();
+        });
         Thread loginThread = new Thread(loginTask);
         loginThread.start();
-        try {
-            return loginTask.get(); // This will block until the task is done
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+    };
 
     public Region getView(){
         return viewBuilder.build();
