@@ -23,7 +23,6 @@ public class AppRoot extends Application implements StageManager {
         this.userModel = new UserModel();
         this.applicationController = new ApplicationController(userModel, this);
         LoginController loginController = new LoginController(userModel, applicationController);
-//        primaryStage.setScene(new Scene(new LoginController(userModel).getView()));
         primaryStage.setScene(new Scene(loginController.getView()));
         primaryStage.show();
     }

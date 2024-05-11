@@ -7,60 +7,37 @@ import javafx.beans.property.StringProperty;
 
 public class UserModel {
     private StringProperty fullName = new SimpleStringProperty("");
-    private StringProperty password = new SimpleStringProperty("");
-    private final BooleanProperty passwordValid = new SimpleBooleanProperty(false);
+    private StringProperty inputPassword = new SimpleStringProperty("");
     private BooleanProperty loginFailed = new SimpleBooleanProperty(this, "loginFailed", false);
-    private final String validPassword = "letmein";
-//    private final String osArch;
-//    private final String platform;
-
-//    public User(String osArch,String platform) {
-//        this.osArch = osArch;
-//        this.platform = platform;
-//    }
+    private BooleanProperty authenticated = new SimpleBooleanProperty(this, "authorized", false);
+    private final String password = "letmein";
 
     public BooleanProperty loginFailedProperty(){
         return loginFailed;
     }
 
-    public BooleanProperty passwordValidProperty(){
-        return passwordValid;
+    public BooleanProperty authenticatedProperty() {
+        return authenticated;
     }
 
     public StringProperty fullNameProperty() {
         return fullName;
     }
 
-    public StringProperty passwordProperty(){
-        return password;
-    }
-
-    public void setPasswordValid(Boolean isValid){
-        this.passwordValid.set(isValid);
-    }
-
-    public void setPassword(String password){
-        this.password.set(password);
-    }
-
-    public void setFullName(String fullName){
-        this.fullName.set(fullName);
-    }
-
-    public Boolean getPasswordValid(){
-        return passwordValid.get();
+    public StringProperty inputPasswordProperty() {
+        return inputPassword;
     }
 
     public String getFullName(){
         return fullName.get();
     }
 
-    public String getPassword(){
-        return password.get();
+    public String getPassword() {
+        return password;
     }
 
-    public String getValidPassword() {
-        return validPassword;
+    public String getInputPassword() {
+        return inputPassword.get();
     }
 
     public String getPlatform() {
