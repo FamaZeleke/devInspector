@@ -1,4 +1,4 @@
-package nivohub.devInspector.controller;
+package nivohub.devinspector.controller;
 
 import javafx.scene.Scene;
 import javafx.stage.Stage;

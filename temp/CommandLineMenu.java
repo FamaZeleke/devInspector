@@ -1,7 +1,7 @@
-package nivohub.devInspector.controller;
+package nivohub.devinspector.controller;
 
-import nivohub.devInspector.model.DockerCLI;
-import nivohub.devInspector.model.VersioningCLI;
+import nivohub.devinspector.model.DockerCLI;
+import nivohub.devinspector.model.VersioningCLI;
 
 import java.util.HashMap;
 import java.util.Map;

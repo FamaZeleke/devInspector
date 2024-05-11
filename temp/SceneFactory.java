@@ -1,11 +1,11 @@
-package nivohub.devInspector.controller;
+package nivohub.devinspector.controller;
 
 import javafx.scene.Scene;
-import nivohub.devInspector.model.DockerManager;
-import nivohub.devInspector.model.UserModel;
-import nivohub.devInspector.view.AppMenu;
-import nivohub.devInspector.view.DockerScene;
-import nivohub.devInspector.view.HomeScene;
+import nivohub.devinspector.model.DockerManager;
+import nivohub.devinspector.model.UserModel;
+import nivohub.devinspector.view.AppMenu;
+import nivohub.devinspector.view.DockerScene;
+import nivohub.devinspector.view.HomeScene;
 
 public class SceneFactory {
     private final UserModel user;
@@ -22,7 +22,7 @@ public class SceneFactory {
         switch (sceneType) {
             case "Home":
                 HomeScene homeScene = new HomeScene(user, appMenu);
-                HomeController homeController = new HomeController(homeScene, dockerManager);
+                HomeController homeController = new HomeController();
                 homeScene.setController(homeController);
                 return homeScene.createScene();
             case "Docker":

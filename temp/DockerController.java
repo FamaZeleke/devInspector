@@ -1,9 +1,9 @@
-package nivohub.devInspector.controller;
+package nivohub.devinspector.controller;
 
 import javafx.application.Platform;
-import nivohub.devInspector.exceptions.BindingPortAlreadyAllocatedException;
-import nivohub.devInspector.view.DockerScene;
-import nivohub.devInspector.model.DockerManager;
+import nivohub.devinspector.exceptions.BindingPortAlreadyAllocatedException;
+import nivohub.devinspector.view.DockerScene;
+import nivohub.devinspector.model.DockerManager;
 
 import java.io.File;
 import java.io.IOException;

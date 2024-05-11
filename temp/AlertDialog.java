@@ -1,4 +1,4 @@
-package nivohub.devInspector.view;
+package nivohub.devinspector.view;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;

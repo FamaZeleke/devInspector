@@ -1,4 +1,4 @@
-package nivohub.devInspector.model;
+package nivohub.devinspector.model;
 
 import java.io.BufferedReader;
 import java.io.IOException;

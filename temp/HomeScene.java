@@ -1,4 +1,4 @@
-package nivohub.devInspector.view;
+package nivohub.devinspector.view;
 
 
 import javafx.geometry.Pos;
@@ -8,8 +8,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import nivohub.devInspector.controller.HomeController;
-import nivohub.devInspector.model.UserModel;
+import nivohub.devinspector.controller.HomeController;
+import nivohub.devinspector.model.UserModel;
 
 public class HomeScene {
     private final UserModel user;

@@ -1,8 +1,8 @@
-package nivohub.devInspector.view;
+package nivohub.devinspector.view;
 
 import javafx.scene.control.*;
-import nivohub.devInspector.controller.CommandLineController;
-import nivohub.devInspector.controller.SceneController;
+import nivohub.devinspector.controller.CommandLineController;
+import nivohub.devinspector.controller.SceneController;
 
 
 public class AppMenu {

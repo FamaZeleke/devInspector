@@ -1,4 +1,4 @@
-package nivohub.devInspector.controller;
+package nivohub.devinspector.controller;
 
 import java.io.IOException;
 
@@ -19,13 +19,13 @@ public class CommandLineController {
         String classpath;
         if (projectRootPath.endsWith("/Contents")) {
             // The application is running from the .app bundle
-            classpath = projectRootPath + "/Java/devInspector-1.0-jar-with-dependencies.jar";
+            classpath = projectRootPath + "/Java/devinspector-1.0-jar-with-dependencies.jar";
         } else {
             // The application is not running from the .app bundle
             classpath = projectRootPath + "/target/classes";
         }
 
-        String runCommand = "java -cp " + classpath + " nivohub.devInspector.controller.CommandLineMenu";
+        String runCommand = "java -cp " + classpath + " nivohub.devinspector.controller.CommandLineMenu";
         String terminalCommand;
 
         System.out.println("Running menu in terminal for platform: " + platform);

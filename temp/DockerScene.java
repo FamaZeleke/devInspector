@@ -1,4 +1,4 @@
-package nivohub.devInspector.view;
+package nivohub.devinspector.view;
 
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
@@ -16,7 +16,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import nivohub.devInspector.controller.DockerController;
+import nivohub.devinspector.controller.DockerController;
 
 import java.io.File;
 import java.io.IOException;

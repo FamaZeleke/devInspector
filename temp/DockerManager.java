@@ -1,4 +1,4 @@
-package nivohub.devInspector.model;
+package nivohub.devinspector.model;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
@@ -14,7 +14,7 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import nivohub.devInspector.exceptions.BindingPortAlreadyAllocatedException;
+import nivohub.devinspector.exceptions.BindingPortAlreadyAllocatedException;
 
 import java.io.*;
 import java.lang.reflect.Type;
