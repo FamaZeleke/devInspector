@@ -1,4 +1,4 @@
-package nivohub.devInspector.model;
+package nivohub.devinspector.model;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
