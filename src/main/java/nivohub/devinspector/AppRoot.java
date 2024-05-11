@@ -1,11 +1,17 @@
-package nivohub.devInspector;
+package nivohub.devinspector;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import nivohub.devInspector.controller.LoginController;
+import nivohub.devinspector.controller.ApplicationController;
+import nivohub.devinspector.controller.LoginController;
+import nivohub.devinspector.model.UserModel;
 
-public class AppRoot extends Application {
+public class AppRoot extends Application implements StageManager {
+
+    private Stage primaryStage;
+    private ApplicationController applicationController;
+    private UserModel userModel;
 
     public static void main(String[] args) {
         launch(args);
@@ -13,8 +19,20 @@ public class AppRoot extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setScene(new Scene(new LoginController().getView()));
+        this.primaryStage = primaryStage;
+        this.userModel = new UserModel();
+        this.applicationController = new ApplicationController(userModel, this);
+        LoginController loginController = new LoginController(userModel, applicationController);
+//        primaryStage.setScene(new Scene(new LoginController(userModel).getView()));
+        primaryStage.setScene(new Scene(loginController.getView()));
         primaryStage.show();
+    }
+
+    @Override
+    public void switchScene() {
+        primaryStage.setScene(new Scene(applicationController.getView()));
+        primaryStage.setWidth(800);
+        primaryStage.setHeight(600);
     }
 
 
