@@ -37,6 +37,7 @@ public class LoginViewBuilder implements Builder<Region> {
         results.setAlignment(Pos.CENTER);
 
         results.add(welcomeLabel(), 0, 0);
+        results.add(boundNameLabel(), 1, 0, 2, 1);
         results.add(nameLabel(), 0, 1);
         results.add(nameInput(), 1, 1);
         results.add(passwordLabel(), 0, 2);
@@ -55,7 +56,7 @@ public class LoginViewBuilder implements Builder<Region> {
     }
 
     private Node passwordInput(){
-        return boundTextField(model.passwordProperty(), "Enter Password");
+        return boundTextField(model.inputPasswordProperty(), "Enter Password");
     }
 
     private Node nameInput(){
@@ -66,6 +67,10 @@ public class LoginViewBuilder implements Builder<Region> {
         Label label = new Label("Welcome");
         label.setFont(Font.font("Inter", FontWeight.MEDIUM, 20));
         return label;
+    }
+
+    private Node boundNameLabel(){
+     return boundLabel(model.fullNameProperty());
     }
 
     private Node errorMessage(){
@@ -88,6 +93,12 @@ public class LoginViewBuilder implements Builder<Region> {
         textField.setPromptText(promptText);
         textField.textProperty().bindBidirectional(boundProperty);
         return textField;
+    }
+
+    private Node boundLabel(StringProperty boundProperty){
+        Label label = new Label();
+        label.textProperty().bind(boundProperty);
+        return label;
     }
 
     private Node label(String contents){

@@ -9,9 +9,6 @@ import nivohub.devinspector.model.UserModel;
 import nivohub.devinspector.view.LoginViewBuilder;
 
 public class LoginController {
-    //    private final LoginScene view;
-//    private final User user;
-//    private final AlertDialog alertDialog = new AlertDialog();
     private Builder<Region> viewBuilder;
     private LoginInteractor interactor;
     private final ApplicationController applicationController;
@@ -29,7 +26,7 @@ public class LoginController {
                 return interactor.attemptLogin();
             }
         };
-        loginTask.setOnSucceeded(e -> {if (loginTask.getValue()){
+        loginTask.setOnSucceeded(e -> {if (Boolean.TRUE.equals(loginTask.getValue())){
             applicationController.loadMainView();
         }
         });

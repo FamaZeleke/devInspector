@@ -8,10 +8,10 @@ public class LoginInteractor {
 
     public LoginInteractor(UserModel model) {
         this.model = model;
-        model.passwordValidProperty().bind(Bindings.createBooleanBinding(this::isPasswordValid, model.passwordProperty()));
+        model.authenticatedProperty().bind(Bindings.createBooleanBinding(this::isPasswordValid, model.inputPasswordProperty()));
     }
     private boolean isPasswordValid(){
-        return model.getPassword().equals(model.getValidPassword());
+        return model.getPassword().equals(model.getInputPassword());
     }
 
     public boolean attemptLogin(){
