@@ -1,7 +1,4 @@
-package nivohub.devinspector.controller;
-
-import nivohub.devinspector.model.DockerCLI;
-import nivohub.devinspector.model.VersioningCLI;
+package nivohub.devinspector.clitool;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,34 +6,36 @@ import java.util.Scanner;
 import java.util.Stack;
 import java.util.function.Consumer;
 
-public class CommandLineMenu {
+import static java.lang.System.*;
+
+public class CLMain {
     private static final Stack<String> navigationHistory = new Stack<>();
     private static final Map<String, Consumer<Scanner>> optionHandlers = new HashMap<>();
 
     static {
-        optionHandlers.put("mainMenu1", CommandLineMenu::dockerMenu);
-        optionHandlers.put("mainMenu2", CommandLineMenu::versionMenu);
+        optionHandlers.put("mainMenu1", CLMain::dockerMenu);
+        optionHandlers.put("mainMenu2", CLMain::versionMenu);
     }
 
     public static void main(String[] args) {
-        Scanner input = new Scanner(System.in);
+        Scanner input = new Scanner(in);
         boolean exit = false;
 
         while (!exit) {
-            System.out.println("╔══════════════════════════════╗");
-            System.out.println("║             Menu             ║");
-            System.out.println("╚══════════════════════════════╝");
+            out.println("╔══════════════════════════════╗");
+            out.println("║             Menu             ║");
+            out.println("╚══════════════════════════════╝");
 
-            System.out.println("     1. ➤ Option 1: Docker Commands");
-            System.out.println("     2. ➤ Option 2: Versioning");
-            System.out.println("     3. ➤ Option 3: Exit");
-            System.out.println("\nPlease select an option (1-3): ");
+            out.println("     1. ➤ Option 1: Docker Commands");
+            out.println("     2. ➤ Option 2: Versioning");
+            out.println("     3. ➤ Option 3: Exit");
+            out.println("\nPlease select an option (1-3): ");
 
             int selection = input.nextInt();
             input.nextLine();
 
             if (selection < 1 || selection > 3) {
-                System.out.println("Invalid selection. Please select a number between 1 and 3.");
+                out.println("Invalid selection. Please select a number between 1 and 3.");
                 continue;
             }
 
@@ -52,10 +51,10 @@ public class CommandLineMenu {
                 if (!navigationHistory.isEmpty()) {
                     String lastOption = navigationHistory.pop();
                     // Call the appropriate method for the last option
-                    System.out.println("Returning to " + lastOption);
+                    out.println("Returning to " + lastOption);
                     optionHandlers.get(lastOption).accept(input);
                 } else {
-                    System.out.println("No previous option to return to.");
+                    out.println("No previous option to return to.");
                 }
             }
         }
@@ -63,14 +62,14 @@ public class CommandLineMenu {
 
 
     public static void versionMenu(Scanner input){
-        System.out.println("╔═══════════════════════════════╗");
-        System.out.println("║        Version commands       ║");
-        System.out.println("╚═══════════════════════════════╝");
-        System.out.println("     1. ➤ Option 1: JVM Version");
-        System.out.println("     2. ➤ Option 2: Node Version");
-        System.out.println("     3. ➤ Option 3: Yarn Version");
-        System.out.println("     4. ➤ Option 4: Back");
-        System.out.println("\nPlease select an option (1-4): ");
+        out.println("╔═══════════════════════════════╗");
+        out.println("║        Version commands       ║");
+        out.println("╚═══════════════════════════════╝");
+        out.println("     1. ➤ Option 1: JVM Version");
+        out.println("     2. ➤ Option 2: Node Version");
+        out.println("     3. ➤ Option 3: Yarn Version");
+        out.println("     4. ➤ Option 4: Back");
+        out.println("\nPlease select an option (1-4): ");
         int selection = input.nextInt();
         input.nextLine();
 
@@ -94,19 +93,19 @@ public class CommandLineMenu {
     }
 
     public static void dockerMenu(Scanner input) {
-        System.out.println("╔══════════════════════════════╗");
-        System.out.println("║        Docker Commands       ║");
-        System.out.println("╚══════════════════════════════╝");
-        System.out.println("     1. ➤ Option 1: Docker PS");
-        System.out.println("     2. ➤ Option 2: Docker Images");
-        System.out.println("     4. ➤ Option 4: Back");
-        System.out.println("\nPlease select an option (1-3): ");
+        out.println("╔══════════════════════════════╗");
+        out.println("║        Docker Commands       ║");
+        out.println("╚══════════════════════════════╝");
+        out.println("     1. ➤ Option 1: Docker PS");
+        out.println("     2. ➤ Option 2: Docker Images");
+        out.println("     4. ➤ Option 4: Back");
+        out.println("\nPlease select an option (1-3): ");
         int selection = input.nextInt();
         input.nextLine();
 
         String selectedOption = getAndHandleUserInput(selection, 3);
         if (selectedOption != null) {
-            System.out.println("Selected option: " + selectedOption);
+            out.println("Selected option: " + selectedOption);
             switch (selectedOption) {
                 case "selectedMenu1": {
                     DockerCLI.runDockerCommand("ps");
@@ -122,16 +121,16 @@ public class CommandLineMenu {
 
     public static String getAndHandleUserInput(int selection, int optionLimit) {
         if (selection < 1 || selection > optionLimit) {
-            System.out.println("Invalid selection. Please select a number between 1 and " + optionLimit + ".");
+            out.println("Invalid selection. Please select a number between 1 and " + optionLimit + ".");
             return null;
         } else {
             if (selection == optionLimit) {
                 if (!navigationHistory.isEmpty()) {
                     String lastOption = navigationHistory.pop();
-                    System.out.println("Returning to " + lastOption);
+                    out.println("Returning to " + lastOption);
                     optionHandlers.get(lastOption);
                 } else {
-                    System.out.println("No previous option to return to.");
+                    out.println("No previous option to return to.");
                 }
                 return null;
             } else {
