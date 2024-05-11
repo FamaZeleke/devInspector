@@ -2,16 +2,16 @@ package nivohub.devinspector.view;
 
 import javafx.scene.control.*;
 import javafx.util.Builder;
-import nivohub.devinspector.model.ApplicationModel;
+import nivohub.devinspector.model.View;
 
 import java.util.function.Consumer;
 
 public class MenuBarBuilder implements Builder<MenuBar> {
 
-        private final Consumer<String> navHandler;
+        private final Consumer<View> eventHandler;
 
-        public MenuBarBuilder(Consumer<String> navHandler) {
-                this.navHandler = navHandler;
+        public MenuBarBuilder(Consumer<View> eventHandler) {
+                this.eventHandler = eventHandler;
         }
 
 
@@ -19,15 +19,15 @@ public class MenuBarBuilder implements Builder<MenuBar> {
         public MenuBar build() {
                 Menu mainMenu = new Menu("Main Menu");
                 Button cliButton = new Button("Command Line Tools");
-//                cliButton.setOnAction(event -> navHandler.runMenuInTerminal());
+                cliButton.setOnAction(event -> eventHandler.accept(View.CLI));
                 CustomMenuItem cliMenuItem = new CustomMenuItem(cliButton);
                 cliMenuItem.setHideOnClick(false);
 
                 MenuItem home = new MenuItem("Home");
-                home.setOnAction(event -> navHandler.accept("Home"));
+                home.setOnAction(event -> eventHandler.accept(View.HOME));
 
                 MenuItem docker = new MenuItem("Docker");
-//                docker.setOnAction(event -> navHandler.showScene("Docker"));
+                docker.setOnAction(event -> eventHandler.accept(View.DOCKER));
 
                 MenuItem exit = new MenuItem("Exit");
                 exit.setOnAction(event -> System.exit(0));

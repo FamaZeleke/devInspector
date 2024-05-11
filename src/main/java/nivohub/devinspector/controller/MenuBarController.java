@@ -1,10 +1,10 @@
 package nivohub.devinspector.controller;
 
-import javafx.scene.Node;
 import javafx.scene.control.MenuBar;
 import javafx.util.Builder;
 import nivohub.devinspector.interactor.MenuBarInteractor;
 import nivohub.devinspector.model.ApplicationModel;
+import nivohub.devinspector.model.View;
 import nivohub.devinspector.view.MenuBarBuilder;
 
 
@@ -16,18 +16,21 @@ public class MenuBarController {
     public MenuBarController(ApplicationModel applicationModel) {
         this.model = applicationModel;
         interactor = new MenuBarInteractor(model);
-        viewBuilder = new MenuBarBuilder(this::handleNavigation);
+        viewBuilder = new MenuBarBuilder(this::handleView);
     }
 
-    private void handleNavigation(String viewName) {
-        switch (viewName){
-            case "Home":
-                interactor.showHome();
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown View");
+    private void handleView(View view) {
+        switch (view) {
+            case HOME, DOCKER -> {
+                interactor.showView(View.HOME);
+            }
+            case CLI -> {
+                interactor.showView(View.CLI);
+            }
+            case EXIT -> {
+                System.exit(0);
+            }
         }
-
     }
 
     public MenuBar getMenu(){
