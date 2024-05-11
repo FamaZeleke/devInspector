@@ -1,24 +1,25 @@
-package nivohub.devInspector.controller;
+package nivohub.devinspector.controller;
 
 import javafx.concurrent.Task;
 import javafx.scene.layout.Region;
 import javafx.util.Builder;
-import nivohub.devInspector.exceptions.PasswordException;
-import nivohub.devInspector.interactor.LoginInteractor;
-import nivohub.devInspector.model.UserModel;
-import nivohub.devInspector.view.LoginViewBuilder;
+import nivohub.devinspector.exceptions.PasswordException;
+import nivohub.devinspector.interactor.LoginInteractor;
+import nivohub.devinspector.model.UserModel;
+import nivohub.devinspector.view.LoginViewBuilder;
 
 public class LoginController {
-//    private final LoginScene view;
+    //    private final LoginScene view;
 //    private final User user;
 //    private final AlertDialog alertDialog = new AlertDialog();
     private Builder<Region> viewBuilder;
     private LoginInteractor interactor;
+    private final ApplicationController applicationController;
 
-    public LoginController() {
-        UserModel model = new UserModel();
+    public LoginController(UserModel model, ApplicationController applicationController) {
         interactor = new LoginInteractor(model);
         viewBuilder = new LoginViewBuilder(model, this::loginUser);
+        this.applicationController = applicationController;
     }
 
     private void loginUser() {
@@ -28,7 +29,10 @@ public class LoginController {
                 return interactor.attemptLogin();
             }
         };
-        loginTask.setOnSucceeded(e -> {loginTask.getValue();});
+        loginTask.setOnSucceeded(e -> {if (loginTask.getValue()){
+            applicationController.loadMainView();
+        }
+        });
         loginTask.setOnFailed(e -> {
             // Handle error
             e.getSource().getException().printStackTrace();

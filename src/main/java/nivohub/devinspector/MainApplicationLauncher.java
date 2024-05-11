@@ -1,4 +1,4 @@
-package nivohub.devInspector;
+package nivohub.devinspector;
 
 public class MainApplicationLauncher {
     public  static void main (String[] args) {

@@ -1,7 +1,7 @@
-package nivohub.devInspector.interactor;
+package nivohub.devinspector.interactor;
 
 import javafx.beans.binding.Bindings;
-import nivohub.devInspector.model.UserModel;
+import nivohub.devinspector.model.UserModel;
 
 public class LoginInteractor {
     private UserModel model;

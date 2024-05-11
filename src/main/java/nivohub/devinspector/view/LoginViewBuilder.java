@@ -1,4 +1,4 @@
-package nivohub.devInspector.view;
+package nivohub.devinspector.view;
 
 import javafx.beans.property.StringProperty;
 import javafx.geometry.Insets;
@@ -13,7 +13,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Builder;
-import nivohub.devInspector.model.UserModel;
+import nivohub.devinspector.model.UserModel;
 
 
 
