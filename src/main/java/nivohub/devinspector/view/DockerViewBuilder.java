@@ -115,7 +115,8 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private Node createVBox(List<Node> children) {
         VBox results = new VBox(24);
-        results.setPadding(new Insets(12));
+        results.setPadding(new Insets(20,12,12,12));
+        results.fillWidthProperty().set(false);
         results.setAlignment(Pos.TOP_CENTER);
         results.getChildren().addAll(children);
         return results;
@@ -129,11 +130,12 @@ public class DockerViewBuilder implements Builder<Region> {
         return new TextArea();
     }
 
+
+    //Styling
     private Node styledTextField(String prompt) {
-        TextArea results = new TextArea();
+        TextField results = new TextField();
         results.setPromptText(prompt);
-        results.setMaxWidth(150);
-        results.setMaxHeight(10);
+        results.setPrefWidth(150);
         return results;
     }
 
