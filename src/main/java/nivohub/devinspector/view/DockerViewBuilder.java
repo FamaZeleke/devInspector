@@ -1,7 +1,9 @@
 package nivohub.devinspector.view;
 
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
-import javafx.collections.FXCollections;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,11 +14,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
-import nivohub.devinspector.docker.DockerImage;
 import nivohub.devinspector.model.DockerModel;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class DockerViewBuilder implements Builder<Region> {
@@ -66,12 +66,14 @@ public class DockerViewBuilder implements Builder<Region> {
     private Tab createDefualtTab() {
         Tab results = new Tab("Default");
 
-        Node imageSelection = styledComboBox("Select Image", model.getDockerImageNames());
+        Node imageSelection = styledComboBox("Select Image", model.getDockerImageNames(), model.selectedImageProperty());
+        Node tagSelection = styledComboBox("Select Tag", model.selectedImageTagsProperty(), model.selectedTagProperty());
+        tagSelection.disableProperty().bind(model.imageSelectedProperty().not());
         Node containerName = styledTextField("Container Name");
         Node containerPort = styledTextField("Container Port");
         Node hostPort = styledTextField("Host Port");
         Node runButton = styledButton("Run");
-        List<Node> children = List.of(imageSelection, containerName, containerPort, hostPort, runButton);
+        List<Node> children = List.of(imageSelection, tagSelection, containerName, containerPort, hostPort, runButton);
         Node content = createVBox(children);
         results.setContent(content);
         return results;
@@ -130,8 +132,8 @@ public class DockerViewBuilder implements Builder<Region> {
     private Node styledTextField(String prompt) {
         TextArea results = new TextArea();
         results.setPromptText(prompt);
-        results.setPrefWidth(148);
-        results.setMaxHeight(18);
+        results.setMaxWidth(150);
+        results.setMaxHeight(10);
         return results;
     }
 
@@ -141,11 +143,12 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private Node styledComboBox(String prompt, ObservableList<String> items) {
+    private Node styledComboBox(String prompt, ObservableList<String> items, SimpleStringProperty binding) {
         ComboBox<String> results = new ComboBox<>();
         results.setPromptText(prompt);
         results.setPrefWidth(150);
         results.itemsProperty().bind(Bindings.createObjectBinding(() -> items, items));
+        results.valueProperty().bindBidirectional(binding);
         return results;
     }
 }
