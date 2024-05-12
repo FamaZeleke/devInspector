@@ -35,8 +35,8 @@ public class AppRoot extends Application implements StageManager {
     @Override
     public void switchScene() {
         primaryStage.setScene(new Scene(applicationController.getView()));
-        primaryStage.setWidth(800);
-        primaryStage.setHeight(600);
+        primaryStage.setWidth(1024);
+        primaryStage.setHeight(768);
     }
 
 
