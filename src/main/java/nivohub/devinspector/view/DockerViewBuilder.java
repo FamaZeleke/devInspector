@@ -1,7 +1,10 @@
 package nivohub.devinspector.view;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,6 +15,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
+import nivohub.devinspector.docker.DockerContainer;
 import nivohub.devinspector.model.DockerModel;
 
 import java.util.List;
@@ -20,11 +24,13 @@ import java.util.List;
 public class DockerViewBuilder implements Builder<Region> {
 
     private final DockerModel model;
-    private final Runnable runnableConnectDocker;
+    private final Runnable connectDockerAction;
+    private final Runnable pullAndRunContainerAction;
 
-    public DockerViewBuilder(DockerModel model, Runnable startContainerAction, Runnable connectDockerAction) {
+    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction) {
         this.model = model;
-        this.runnableConnectDocker = connectDockerAction;
+        this.connectDockerAction = connectDockerAction;
+        this.pullAndRunContainerAction = pullAndRunContainerAction;
     }
     @Override
     public Region build() {
@@ -72,10 +78,10 @@ public class DockerViewBuilder implements Builder<Region> {
         Node imageSelection = styledComboBox("Select Image", model.getDockerImageNames(), model.selectedImageProperty());
         Node tagSelection = styledComboBox("Select Tag", model.selectedImageTagsProperty(), model.selectedTagProperty());
         tagSelection.disableProperty().bind(model.imageSelectedProperty().not());
-        Node containerName = styledTextField("Container Name");
-        Node containerPort = styledTextField("Container Port");
-        Node hostPort = styledTextField("Host Port");
-        Node runButton = styledButton("Run");
+        Node containerName = styledTextField("Container Name", model.formContainerNameProperty());
+        Node containerPort = styledTextField("Container Port", model.formContainerPortProperty());
+        Node hostPort = styledTextField("Host Port", model.formContainerHostPortProperty());
+        Node runButton = styledRunnableButton("Run", pullAndRunContainerAction);
         List<Node> children = List.of(imageSelection, tagSelection, containerName, containerPort, hostPort, runButton);
         Node content = styledVbox(children);
         results.setContent(content);
@@ -99,19 +105,50 @@ public class DockerViewBuilder implements Builder<Region> {
 
     //Builders
 
-    private Region createContainerRegion(){
+    private Accordion createContainerRegion(){
         Accordion results = new Accordion();
+        ObservableList<TitledPane> titledPanes = FXCollections.observableArrayList();
+        Bindings.bindContent(results.getPanes(), titledPanes);
+
+        // Create a TitledPane for each existing container
+        for (DockerContainer container : model.getRunningContainers()) {
+            TitledPane pane = createContainerDetails(container);
+            titledPanes.add(pane);
+        }
+
+        // Add a listener to handle containers being added or removed
+        model.getRunningContainers().addListener((ListChangeListener.Change<? extends DockerContainer> c) -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+                    for (DockerContainer container : c.getAddedSubList()) {
+                        Platform.runLater(() -> {
+                            TitledPane pane = createContainerDetails(container);
+                            titledPanes.add(pane);
+                        });
+                    }
+                }
+                if (c.wasRemoved()) {
+                    for (DockerContainer container : c.getRemoved()) {
+                        Platform.runLater(() -> {
+                            titledPanes.removeIf(pane -> pane.getText().equals(container.containerName()));
+                        });
+                    }
+                }
+            }
+        });
+
         return results;
     }
 
-    private Node createContainerDetails() {
+    private TitledPane createContainerDetails(DockerContainer container) {
 
-        Node idLabel = styledLabel("Container ID: ");
-        Node nameLabel = styledLabel("Container Name: ");
-        Node imageLabel = styledLabel("Container Image: ");
-        Node statusLabel = styledLabel("Container Status: ");
+        Node idLabel = styledLabel("Container ID: "+ container.containerId());
+        Node nameLabel = styledLabel("Container Name: " + container.containerName());
+        Node imageLabel = styledLabel("Container Image: " + container.image());
+        Node statusLabel = styledLabel("Container Status: " + container.status());
         Node portLabel = styledLabel("Configured Port (Click Me!): ");
-        Hyperlink portLink = new Hyperlink("www.google.com");
+        Hyperlink portLink = new Hyperlink(String.valueOf(container.exposedPort()));
+        //TODO openbrowsertoport
         return styledTitledPane("Container Details", List.of(idLabel, nameLabel, imageLabel, statusLabel, portLabel, portLink));
     }
 
@@ -126,7 +163,7 @@ public class DockerViewBuilder implements Builder<Region> {
         label.textProperty().bind(Bindings.when(model.dockerConnectedProperty())
                 .then("Docker is running")
                 .otherwise("Docker is not running"));
-        Node connectDocker = styledRunnableButton("Connect Docker", runnableConnectDocker);
+        Node connectDocker = styledRunnableButton("Connect Docker", connectDockerAction);
         connectDocker.disableProperty().bind(model.dockerConnectedProperty());
         return styledVbox(List.of(label, connectDocker));
     }
@@ -145,7 +182,18 @@ public class DockerViewBuilder implements Builder<Region> {
     }
 
     private Node createOutputArea() {
-        return new ListView<String>();
+        TextArea output = new TextArea();
+        output.setEditable(false);
+        output.setWrapText(true);
+        output.setMaxHeight(Double.MAX_VALUE);
+        output.textProperty().bindBidirectional(model.outputProperty());
+        model.outputProperty().addListener((obs, oldVal, newVal) -> {
+            Platform.runLater(() -> {
+                output.selectPositionCaret(output.getLength());
+                output.deselect();  // to remove the text selection
+            });
+        });
+        return output;
     }
 
     private Node createTextEditor() {
@@ -154,7 +202,7 @@ public class DockerViewBuilder implements Builder<Region> {
 
 
     //Styling
-    private Node styledTitledPane(String title, List<Node> content) {
+    private TitledPane styledTitledPane(String title, List<Node> content) {
         TitledPane results = new TitledPane();
         results.setText(title);
         results.setContent(styledVbox(content));
@@ -193,10 +241,11 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private Node styledTextField(String prompt) {
+    private Node styledTextField(String prompt, SimpleStringProperty binding) {
         TextField results = new TextField();
         results.setPromptText(prompt);
         results.setPrefWidth(150);
+        results.textProperty().bindBidirectional(binding);
         return results;
     }
 
