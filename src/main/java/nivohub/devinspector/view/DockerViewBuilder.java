@@ -1,9 +1,7 @@
 package nivohub.devinspector.view;
 
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,15 +15,16 @@ import javafx.util.Builder;
 import nivohub.devinspector.model.DockerModel;
 
 import java.util.List;
-import java.util.Optional;
 
 
 public class DockerViewBuilder implements Builder<Region> {
 
     private final DockerModel model;
+    private final Runnable runnableConnectDocker;
 
-    public DockerViewBuilder(DockerModel model) {
+    public DockerViewBuilder(DockerModel model, Runnable startContainerAction, Runnable connectDockerAction) {
         this.model = model;
+        this.runnableConnectDocker = connectDockerAction;
     }
     @Override
     public Region build() {
@@ -45,8 +44,10 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private Region setupLeft() {
         Node tabPane = createTabPane(createDefualtTab(), createDockerfileTab());
-
-        return createRegionPane(tabPane, new Insets(12));
+        Node box = createBox();
+        VBox content = new VBox();
+        content.getChildren().addAll(tabPane, box);
+        return createRegionPane(content, new Insets(12));
     }
 
     private Region setupRight() {
@@ -60,7 +61,7 @@ public class DockerViewBuilder implements Builder<Region> {
         Node exportButton = styledButton("Export Dockerfile");
         Node runButton = styledButton("Run");
         List<Node> children = List.of(uploadButton, exportButton, runButton);
-        Node content = createVBox(children);
+        Node content = styledVbox(children);
         results.setContent(content);
         return results;
     }
@@ -76,7 +77,7 @@ public class DockerViewBuilder implements Builder<Region> {
         Node hostPort = styledTextField("Host Port");
         Node runButton = styledButton("Run");
         List<Node> children = List.of(imageSelection, tagSelection, containerName, containerPort, hostPort, runButton);
-        Node content = createVBox(children);
+        Node content = styledVbox(children);
         results.setContent(content);
         return results;
     }
@@ -120,6 +121,16 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
+    private Node createBox() {
+        Label label = (Label) styledLabel("Docker is not running");
+        label.textProperty().bind(Bindings.when(model.dockerConnectedProperty())
+                .then("Docker is running")
+                .otherwise("Docker is not running"));
+        Node connectDocker = styledRunnableButton("Connect Docker", runnableConnectDocker);
+        connectDocker.disableProperty().bind(model.dockerConnectedProperty());
+        return styledVbox(List.of(label, connectDocker));
+    }
+
     private Region createRegionPane(Node child, Insets insets) {
         AnchorPane results = new AnchorPane();
         results.getChildren().addAll(child);
@@ -146,7 +157,7 @@ public class DockerViewBuilder implements Builder<Region> {
     private Node styledTitledPane(String title, List<Node> content) {
         TitledPane results = new TitledPane();
         results.setText(title);
-        results.setContent(createVBox(content));
+        results.setContent(styledVbox(content));
         return results;
     }
 
@@ -173,7 +184,7 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private Node createVBox(List<Node> children) {
+    private Node styledVbox(List<Node> children) {
         VBox results = new VBox(24);
         results.setPadding(new Insets(20,12,12,12));
         results.fillWidthProperty().set(false);
@@ -186,6 +197,13 @@ public class DockerViewBuilder implements Builder<Region> {
         TextField results = new TextField();
         results.setPromptText(prompt);
         results.setPrefWidth(150);
+        return results;
+    }
+
+    private Node styledRunnableButton(String label, Runnable action) {
+        Button results = new Button(label);
+        results.setPrefWidth(150);
+        results.setOnAction(evt -> action.run());
         return results;
     }
 
