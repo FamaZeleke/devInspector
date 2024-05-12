@@ -18,7 +18,7 @@ public class ApplicationController {
                 new MenuBarController(appModel).getMenu(),
                 new HomeController().getView(),
                 new CLController(userModel).getView(),
-                new DockerController().getView()
+                new DockerController(userModel).getView()
         );
     }
 

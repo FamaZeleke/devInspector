@@ -25,6 +25,11 @@ public class AppRoot extends Application implements StageManager {
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
         this.userModel = new UserModel();
+        String osArch = System.getProperty("os.arch");
+        String osName = System.getProperty("os.name").toLowerCase();
+        String platform = osName.contains("mac") ? "mac" : "windows";
+        userModel.setPlatform(platform);
+        userModel.setOsArch(osArch);
         this.applicationController = new ApplicationController(userModel, this);
         Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
         LoginController loginController = new LoginController(userModel, applicationController);

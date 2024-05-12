@@ -11,6 +11,8 @@ public class UserModel {
     private BooleanProperty loginFailed = new SimpleBooleanProperty(this, "loginFailed", false);
     private BooleanProperty authenticated = new SimpleBooleanProperty(this, "authorized", false);
     private final String password = "letmein";
+    private String platform;
+    private String osArch;
 
     public BooleanProperty loginFailedProperty(){
         return loginFailed;
@@ -40,9 +42,23 @@ public class UserModel {
         return inputPassword.get();
     }
 
-    public String getPlatform() {
-        return "";
+    public void setOsArch(String osArch) {
+        this.osArch = osArch;
     }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+
+    public String getOsArch() {
+        return osArch;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+
 
 //    public void setFullName(String fullName) throws FullNameException {
 //        if (fullName == null || !fullName.contains(" ")) {
@@ -62,11 +78,5 @@ public class UserModel {
 //        }
 //    }
 //
-//    public String getOsArch() {
-//        return osArch;
-//    }
-//
-//    public String getPlatform() {
-//        return platform;
-//    }
+
 }
