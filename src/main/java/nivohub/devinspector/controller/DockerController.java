@@ -17,7 +17,7 @@ public class DockerController {
     public DockerController(UserModel userModel) {
         DockerModel model = new DockerModel();
         interactor = new DockerInteractor(model, userModel);
-        viewBuilder = new DockerViewBuilder(model, this::startContainerAction, this::connectDocker);
+        viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::connectDocker);
     }
 
     private void connectDocker() {
@@ -37,8 +37,21 @@ public class DockerController {
         new Thread(task).start();
     }
 
-    private void startContainerAction() {
-
+    private void pullAndRunContainer() {
+        Task<String> task = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                interactor.pullAndRunContainer();
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> {
+            interactor.addToOutput("Container created with id: " + e.getSource().getValue());
+        });
+        task.setOnFailed(e -> {
+            interactor.addToOutput(e.getSource().getException().getMessage());
+        });
+        new Thread(task).start();
     }
 
     public Region getView(){
