@@ -4,6 +4,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import nivohub.devinspector.docker.DockerImage;
 
+import java.util.stream.Collectors;
+
 public class DockerModel {
 
     private ObservableList<DockerImage> dockerImages;
@@ -19,4 +21,15 @@ public class DockerModel {
     public ObservableList<DockerImage> getDockerImages() {
         return dockerImages;
     }
+
+    public ObservableList<String> getDockerImageNames() {
+        return dockerImages.stream()
+                .map(DockerImage::imageName)
+                .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    }
+
+    public void addDockerImage(DockerImage dockerImage) {
+        dockerImages.add(dockerImage);
+    }
+
 }
