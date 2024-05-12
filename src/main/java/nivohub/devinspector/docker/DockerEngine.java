@@ -4,6 +4,7 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
 import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.InternalServerErrorException;
 import com.github.dockerjava.api.model.*;
@@ -52,6 +53,7 @@ public class DockerEngine {
                     .build();
             dockerClient = DockerClientBuilder.getInstance(config).build();
         }
+        isDockerRunning();
     }
 
     public boolean isDockerRunning() {
@@ -65,12 +67,19 @@ public class DockerEngine {
 
 
 
-    public String createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException {
+    public DockerContainer createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException {
         pullImage(imageName, tag);
         HostConfig hostConfig = configurePortBindings(hostPort, exposedPort);
         String containerId = createContainer(imageName, tag, containerName, hostConfig);
         startContainer(containerId);
-        return containerId;
+
+        InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(containerId).exec();
+        String containerNameFromInfo = containerInfo.getName().substring(1); // Remove leading slash
+        String hostPortFromInfo = String.valueOf(hostPort);
+        String exposedPortFromInfo = String.valueOf(exposedPort);
+        String imageFromInfo = containerInfo.getConfig().getImage();
+
+        return new DockerContainer(containerId, containerNameFromInfo, hostPortFromInfo, exposedPortFromInfo, imageFromInfo, "Running");
     }
 
     private void pullImage(String imageName, String tag) {
