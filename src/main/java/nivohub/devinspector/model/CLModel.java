@@ -19,10 +19,6 @@ public class CLModel {
         }
     }
 
-    public String getOutput() {
-        return this.output.toString();
-    }
-
     public String getMenuCommand() {
         return this.menuCommand;
     }
