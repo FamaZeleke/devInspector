@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>launch.sh</string>
 	<key>CFBundleIdentifier</key>
-	<string>nivohub.devInspector</string>
+	<string>nivohub.devinspector</string>
 	<key>CFBundleName</key>
 	<string>DevInspector</string>
 	<key>CFBundleVersion</key>
