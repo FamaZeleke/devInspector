@@ -1,5 +1,7 @@
 package nivohub.devinspector;
 
+import atlantafx.base.theme.PrimerDark;
+import atlantafx.base.theme.PrimerLight;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -15,6 +17,8 @@ public class AppRoot extends Application implements StageManager {
 
     public static void main(String[] args) {
         launch(args);
+
+
     }
 
     @Override
@@ -22,6 +26,7 @@ public class AppRoot extends Application implements StageManager {
         this.primaryStage = primaryStage;
         this.userModel = new UserModel();
         this.applicationController = new ApplicationController(userModel, this);
+        Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
         LoginController loginController = new LoginController(userModel, applicationController);
         primaryStage.setScene(new Scene(loginController.getView()));
         primaryStage.show();
