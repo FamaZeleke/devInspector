@@ -17,6 +17,7 @@ import javafx.util.Builder;
 import nivohub.devinspector.model.DockerModel;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public class DockerViewBuilder implements Builder<Region> {
@@ -31,24 +32,25 @@ public class DockerViewBuilder implements Builder<Region> {
         BorderPane results = new BorderPane();
         results.setCenter(setupCenter());
         results.setLeft(setupLeft());
+        results.setRight(setupRight());
         return results;
     }
 
     //Regions
     private Region setupCenter() {
-        AnchorPane results = new AnchorPane();
-        Region tabPane = createTabPane(createOutputTab(), createEditorTab());
-        results.getChildren().add(tabPane);
+        Node tabPane = createTabPane(createOutputTab(), createEditorTab());
+        Region results = createRegionPane(tabPane);
         return results;
     }
 
     private Region setupLeft() {
-        AnchorPane results = new AnchorPane();
-        results.setPadding(new Insets(12));
+        Node tabPane = createTabPane(createDefualtTab(), createDockerfileTab());
 
-        Region tabPane = createTabPane(createDefualtTab(), createDockerfileTab());
-        results.getChildren().add(tabPane);
-        return results;
+        return createRegionPane(tabPane, new Insets(12));
+    }
+
+    private Region setupRight() {
+        return createRegionPane(createContainerRegion(), new Insets(0,0,0,12));
     }
 
     //Tabs
@@ -95,9 +97,67 @@ public class DockerViewBuilder implements Builder<Region> {
     }
 
     //Builders
+
+    private Region createContainerRegion(){
+        Accordion results = new Accordion();
+        return results;
+    }
+
+    private Node createContainerDetails() {
+
+        Node idLabel = styledLabel("Container ID: ");
+        Node nameLabel = styledLabel("Container Name: ");
+        Node imageLabel = styledLabel("Container Image: ");
+        Node statusLabel = styledLabel("Container Status: ");
+        Node portLabel = styledLabel("Configured Port (Click Me!): ");
+        Hyperlink portLink = new Hyperlink("www.google.com");
+        return styledTitledPane("Container Details", List.of(idLabel, nameLabel, imageLabel, statusLabel, portLabel, portLink));
+    }
+
     private Region createTabPane(Tab firstTab, Tab secondTab ) {
         TabPane results = new TabPane();
         results.getTabs().addAll(firstTab, secondTab);
+        return results;
+    }
+
+    private Region createRegionPane(Node child, Insets insets) {
+        AnchorPane results = new AnchorPane();
+        results.getChildren().addAll(child);
+        results.setPadding(insets);
+
+        AnchorPane.setBottomAnchor(child, 0.0);
+        AnchorPane.setTopAnchor(child, 0.0);
+        AnchorPane.setLeftAnchor(child, 0.0);
+        AnchorPane.setRightAnchor(child, 0.0);
+
+        return results;
+    }
+
+    private Node createOutputArea() {
+        return new ListView<String>();
+    }
+
+    private Node createTextEditor() {
+        return new TextArea();
+    }
+
+
+    //Styling
+    private Node styledTitledPane(String title, List<Node> content) {
+        TitledPane results = new TitledPane();
+        results.setText(title);
+        results.setContent(createVBox(content));
+        return results;
+    }
+
+    private Region createRegionPane(Node child) {
+        AnchorPane results = new AnchorPane();
+        results.getChildren().addAll(child);
+
+        AnchorPane.setBottomAnchor(child, 0.0);
+        AnchorPane.setTopAnchor(child, 0.0);
+        AnchorPane.setLeftAnchor(child, 0.0);
+        AnchorPane.setRightAnchor(child, 0.0);
         return results;
     }
 
@@ -122,16 +182,6 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private Node createOutputArea() {
-        return new ListView<String>();
-    }
-
-    private Node createTextEditor() {
-        return new TextArea();
-    }
-
-
-    //Styling
     private Node styledTextField(String prompt) {
         TextField results = new TextField();
         results.setPromptText(prompt);
@@ -153,4 +203,10 @@ public class DockerViewBuilder implements Builder<Region> {
         results.valueProperty().bindBidirectional(binding);
         return results;
     }
+
+    private Node styledLabel(String label) {
+        Label results = new Label(label);
+        return results;
+    }
+
 }
