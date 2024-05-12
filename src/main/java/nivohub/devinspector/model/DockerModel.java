@@ -2,6 +2,7 @@ package nivohub.devinspector.model;
 
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -13,10 +14,12 @@ import java.util.stream.Collectors;
 public class DockerModel {
 
     private final ObservableList<DockerImage> dockerImages;
+    private final SimpleStringProperty output = new SimpleStringProperty("");
     private final SimpleStringProperty selectedImage = new SimpleStringProperty();
     private final ListProperty<String> selectedImageTags = new SimpleListProperty<>();
     private final SimpleStringProperty selectedTag = new SimpleStringProperty();
     private final BooleanBinding imageSelected;
+    private final SimpleBooleanProperty dockerConnected = new SimpleBooleanProperty(false);
 
     public DockerModel() {
         this.dockerImages = FXCollections.observableArrayList(
@@ -36,6 +39,13 @@ public class DockerModel {
                 selectedImageTags.set(FXCollections.observableArrayList());
             }
         });
+    }
+
+    public void addToOutput(String newOutput) {
+        if (newOutput != null) {
+            String currentOutput = this.output.get();
+            this.output.setValue(currentOutput+newOutput);
+        }
     }
 
     public SimpleStringProperty selectedImageProperty() {
@@ -62,6 +72,10 @@ public class DockerModel {
 
     public BooleanBinding imageSelectedProperty() {
         return imageSelected;
+    }
+
+    public SimpleBooleanProperty dockerConnectedProperty() {
+        return dockerConnected;
     }
 
     public void addDockerImage(DockerImage dockerImage) {
