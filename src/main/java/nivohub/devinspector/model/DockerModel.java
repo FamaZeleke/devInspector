@@ -7,6 +7,7 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import nivohub.devinspector.docker.DockerContainer;
 import nivohub.devinspector.docker.DockerImage;
 
 import java.util.stream.Collectors;
@@ -14,12 +15,16 @@ import java.util.stream.Collectors;
 public class DockerModel {
 
     private final ObservableList<DockerImage> dockerImages;
+    private final ObservableList<DockerContainer> runningContainers = FXCollections.observableArrayList();
     private final SimpleStringProperty output = new SimpleStringProperty("");
     private final SimpleStringProperty selectedImage = new SimpleStringProperty();
     private final ListProperty<String> selectedImageTags = new SimpleListProperty<>();
     private final SimpleStringProperty selectedTag = new SimpleStringProperty();
     private final BooleanBinding imageSelected;
     private final SimpleBooleanProperty dockerConnected = new SimpleBooleanProperty(false);
+    private final SimpleStringProperty formContainerName = new SimpleStringProperty("");
+    private final SimpleStringProperty formContainerPort = new SimpleStringProperty("");
+    private final SimpleStringProperty formContainerHostPort = new SimpleStringProperty("");
 
     public DockerModel() {
         this.dockerImages = FXCollections.observableArrayList(
@@ -48,6 +53,10 @@ public class DockerModel {
         }
     }
 
+    public SimpleStringProperty outputProperty() {
+        return output;
+    }
+
     public SimpleStringProperty selectedImageProperty() {
         return selectedImage;
     }
@@ -56,18 +65,16 @@ public class DockerModel {
         return selectedTag;
     }
 
-    public ObservableList<DockerImage> getDockerImages() {
-        return dockerImages;
+    public SimpleStringProperty formContainerNameProperty() {
+        return formContainerName;
     }
 
-    public ObservableList<String> getDockerImageNames() {
-        return dockerImages.stream()
-                .map(DockerImage::imageName)
-                .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    public SimpleStringProperty formContainerPortProperty() {
+        return formContainerPort;
     }
 
-    public ListProperty<String> selectedImageTagsProperty() {
-        return selectedImageTags;
+    public SimpleStringProperty formContainerHostPortProperty() {
+        return formContainerHostPort;
     }
 
     public BooleanBinding imageSelectedProperty() {
@@ -78,8 +85,25 @@ public class DockerModel {
         return dockerConnected;
     }
 
+    public ObservableList<String> getDockerImageNames() {
+        return dockerImages.stream()
+                .map(DockerImage::imageName)
+                .collect(Collectors.toCollection(FXCollections::observableArrayList));
+    }
+
+    public ObservableList<DockerContainer> getRunningContainers() {
+        return runningContainers;
+    }
+
+    public ListProperty<String> selectedImageTagsProperty() {
+        return selectedImageTags;
+    }
+
     public void addDockerImage(DockerImage dockerImage) {
         dockerImages.add(dockerImage);
     }
 
+    public void addContainerToList(DockerContainer Container) {
+        runningContainers.add(Container);
+    }
 }
