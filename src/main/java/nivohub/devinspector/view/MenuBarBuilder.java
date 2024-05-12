@@ -18,10 +18,8 @@ public class MenuBarBuilder implements Builder<MenuBar> {
         @Override
         public MenuBar build() {
                 Menu mainMenu = new Menu("Main Menu");
-                Button cliButton = new Button("Command Line Tools");
-                cliButton.setOnAction(event -> eventHandler.accept(View.CLI));
-                CustomMenuItem cliMenuItem = new CustomMenuItem(cliButton);
-                cliMenuItem.setHideOnClick(false);
+                MenuItem cliTool = new MenuItem("CLI Tool");
+                cliTool.setOnAction(event -> eventHandler.accept(View.CLI));
 
                 MenuItem home = new MenuItem("Home");
                 home.setOnAction(event -> eventHandler.accept(View.HOME));
@@ -29,10 +27,11 @@ public class MenuBarBuilder implements Builder<MenuBar> {
                 MenuItem docker = new MenuItem("Docker");
                 docker.setOnAction(event -> eventHandler.accept(View.DOCKER));
 
-                MenuItem exit = new MenuItem("Exit");
+                Button exit = new Button("Exit");
                 exit.setOnAction(event -> System.exit(0));
+                CustomMenuItem exitItem = new CustomMenuItem(exit);
 
-                mainMenu.getItems().addAll(home, docker, exit, cliMenuItem);
+                mainMenu.getItems().addAll(home, docker, cliTool, exitItem);
 
                 return new MenuBar(mainMenu);
         }
