@@ -16,6 +16,7 @@ import com.github.dockerjava.transport.DockerHttpClient;
 import nivohub.devinspector.exceptions.BindingPortAlreadyAllocatedException;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.function.Consumer;
@@ -64,7 +65,6 @@ public class DockerEngine {
             return false;
         }
     }
-
 
 
     public DockerContainer createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException, InterruptedException {
