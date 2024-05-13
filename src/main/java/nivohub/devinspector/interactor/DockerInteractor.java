@@ -8,7 +8,9 @@ import nivohub.devinspector.model.DockerModel;
 import nivohub.devinspector.model.UserModel;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -94,13 +96,16 @@ public class DockerInteractor {
                 .orElse(null);
     }
 
-    public String uploadDockerFile(File file) {
-        try {
+    public String uploadDockerFile(File file) throws IOException {
             String result = Files.readString(file.toPath());
             model.dockerFileTextProperty().set(result);
+            model.dockerFileProperty().set(file);
             return file.getName();
-        } catch (IOException e) {
-            return e.getMessage();
-        }
+    }
+
+    public void exportFile() throws FileNotFoundException {
+            PrintWriter writer = new PrintWriter(model.dockerFileProperty().get());
+            writer.write(model.dockerFileTextProperty().get());
+            writer.close();
     }
 }

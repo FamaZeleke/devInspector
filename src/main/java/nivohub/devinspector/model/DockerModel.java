@@ -7,6 +7,7 @@ import javafx.collections.ObservableList;
 import nivohub.devinspector.docker.DockerContainer;
 import nivohub.devinspector.docker.DockerImage;
 
+import java.io.File;
 import java.util.stream.Collectors;
 
 public class DockerModel {
@@ -14,6 +15,7 @@ public class DockerModel {
     private final ObservableList<DockerImage> dockerImages;
     private final ObservableList<DockerContainer> runningContainers = FXCollections.observableArrayList();
     private final ListProperty<String> selectedImageTags = new SimpleListProperty<>();
+    private final ObjectProperty<File> dockerFile = new SimpleObjectProperty<>();
     private final StringProperty dockerFileText = new SimpleStringProperty();
     private final StringProperty output = new SimpleStringProperty("");
     private final StringProperty selectedImage = new SimpleStringProperty();
@@ -63,6 +65,10 @@ public class DockerModel {
 
     public ListProperty<String> selectedImageTagsProperty() {
         return selectedImageTags;
+    }
+
+    public ObjectProperty<File> dockerFileProperty() {
+        return dockerFile;
     }
 
     public StringProperty dockerFileTextProperty() {
