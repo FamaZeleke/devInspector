@@ -13,13 +13,11 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
 import nivohub.devinspector.model.CLModel;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.function.Consumer;
 
 import static nivohub.devinspector.controller.CLController.*;
 
-public class CLViewBuilder implements Builder<Region>{
+public class CLViewBuilder implements Builder<Region> {
 
     private final Consumer<String> handleCommand;
     private final CLModel model;
