@@ -8,8 +8,7 @@ import nivohub.devinspector.interactor.LoginInteractor;
 import nivohub.devinspector.model.UserModel;
 import nivohub.devinspector.view.LoginViewBuilder;
 
-public class LoginController {
-    private Builder<Region> viewBuilder;
+public class LoginController extends BaseController{
     private LoginInteractor interactor;
     private final ApplicationController applicationController;
 
@@ -38,9 +37,6 @@ public class LoginController {
         loginThread.start();
     };
 
-    public Region getView(){
-        return viewBuilder.build();
-    }
 
 
 //    public Scene getScene() {
