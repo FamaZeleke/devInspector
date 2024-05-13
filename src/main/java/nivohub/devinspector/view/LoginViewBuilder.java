@@ -51,16 +51,16 @@ public class LoginViewBuilder implements Builder<Region> {
 
     private Node createLoginButton() {
         Button loginButton = new Button("Login");
-        loginButton.setOnAction(event -> {loginHandler.run();});
+        loginButton.setOnAction(event -> loginHandler.run());
         return loginButton;
     }
 
     private Node passwordInput(){
-        return boundTextField(model.inputPasswordProperty(), "Enter Password");
+        return boundTextField(model.inputPasswordProperty(), "Enter Password", loginHandler);
     }
 
     private Node nameInput(){
-        return boundTextField(model.fullNameProperty(), "Enter Full Name");
+        return boundTextField(model.fullNameProperty(), "Enter Full Name", loginHandler);
     }
 
     private Node welcomeLabel() {
@@ -88,10 +88,11 @@ public class LoginViewBuilder implements Builder<Region> {
         return label("Name");
     }
 
-    private Node boundTextField(StringProperty boundProperty, String promptText){
+    private Node boundTextField(StringProperty boundProperty, String promptText, Runnable runnable){
         TextField textField = new TextField();
         textField.setPromptText(promptText);
         textField.textProperty().bindBidirectional(boundProperty);
+        textField.setOnAction(event -> runnable.run());
         return textField;
     }
 
