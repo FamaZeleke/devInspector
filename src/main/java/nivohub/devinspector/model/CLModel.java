@@ -1,8 +1,6 @@
 package nivohub.devinspector.model;
 
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 
 public class CLModel {
     private final SimpleStringProperty output = new SimpleStringProperty("");
