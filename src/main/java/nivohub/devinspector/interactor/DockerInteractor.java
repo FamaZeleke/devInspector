@@ -7,9 +7,11 @@ import nivohub.devinspector.exceptions.DockerNotRunningException;
 import nivohub.devinspector.model.DockerModel;
 import nivohub.devinspector.model.UserModel;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 
 public class DockerInteractor {
     private final DockerModel model;
@@ -90,5 +92,15 @@ public class DockerInteractor {
                 .map(DockerContainer::hostPort)
                 .map(Object::toString)
                 .orElse(null);
+    }
+
+    public String uploadDockerFile(File file) {
+        try {
+            String result = Files.readString(file.toPath());
+            model.dockerFileTextProperty().set(result);
+            return file.getName();
+        } catch (IOException e) {
+            return e.getMessage();
+        }
     }
 }
