@@ -17,7 +17,20 @@ public class DockerController {
     public DockerController(UserModel userModel) {
         DockerModel model = new DockerModel();
         interactor = new DockerInteractor(model, userModel);
-        viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::connectDocker);
+        viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::connectDocker, this::openBrowserToContainerBindings);
+    }
+
+    private void openBrowserToContainerBindings(String containerId) {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                interactor.openBrowserToPort(containerId);
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> interactor.addToOutput("Browser opened to port: " + e.getSource().getValue()));
+        task.setOnFailed(e -> interactor.addToOutput(e.getSource().getException().getMessage()));
+        new Thread(task).start();
     }
 
     private void connectDocker() {
@@ -28,29 +41,20 @@ public class DockerController {
                 return null;
             }
         };
-        task.setOnSucceeded(e -> {
-            interactor.updateModelConnection();
-        });
-        task.setOnFailed(e -> {
-            interactor.addToOutput(e.getSource().getException().getMessage());
-    });
+        task.setOnSucceeded(e -> interactor.updateModelConnection());
+        task.setOnFailed(e -> interactor.addToOutput(e.getSource().getException().getMessage()));
         new Thread(task).start();
     }
 
     private void pullAndRunContainer() {
         Task<String> task = new Task<>() {
             @Override
-            protected String call() throws Exception {
-                interactor.pullAndRunContainer();
-                return null;
+            protected String call() {
+                return interactor.pullAndRunContainer();
             }
         };
-        task.setOnSucceeded(e -> {
-            interactor.addToOutput("Container created with id: " + e.getSource().getValue());
-        });
-        task.setOnFailed(e -> {
-            interactor.addToOutput(e.getSource().getException().getMessage());
-        });
+        task.setOnSucceeded(e -> interactor.addToOutput("Container created with id: " + e.getSource().getValue()));
+        task.setOnFailed(e -> interactor.addToOutput(e.getSource().getException().getMessage()));
         new Thread(task).start();
     }
 
