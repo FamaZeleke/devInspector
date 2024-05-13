@@ -1,7 +1,6 @@
 package nivohub.devinspector.controller;
 
 import javafx.concurrent.Task;
-import javafx.scene.layout.Region;
 import nivohub.devinspector.exceptions.InvalidCommandException;
 import nivohub.devinspector.interactor.CLInteractor;
 import nivohub.devinspector.model.CLModel;

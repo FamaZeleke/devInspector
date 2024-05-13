@@ -16,7 +16,6 @@ import com.github.dockerjava.transport.DockerHttpClient;
 import nivohub.devinspector.exceptions.BindingPortAlreadyAllocatedException;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.function.Consumer;

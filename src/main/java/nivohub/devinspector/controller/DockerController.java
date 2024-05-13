@@ -1,8 +1,6 @@
 package nivohub.devinspector.controller;
 
 import javafx.concurrent.Task;
-import javafx.scene.layout.Region;
-import javafx.util.Builder;
 import nivohub.devinspector.exceptions.DockerNotRunningException;
 import nivohub.devinspector.interactor.DockerInteractor;
 import nivohub.devinspector.model.DockerModel;
