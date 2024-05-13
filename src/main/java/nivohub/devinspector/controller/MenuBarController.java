@@ -30,7 +30,7 @@ public class MenuBarController {
         }
     }
 
-    public MenuBar getMenu(){
+    public MenuBar getView(){
         return viewBuilder.build();
     }
 }
