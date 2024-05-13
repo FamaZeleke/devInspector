@@ -182,23 +182,23 @@ public class DockerViewBuilder implements Builder<Region> {
     }
 
     private Node createOutputArea() {
-        TextArea output = new TextArea();
-        output.setEditable(false);
-        output.setWrapText(true);
-        output.setMaxHeight(Double.MAX_VALUE);
-        output.textProperty().bindBidirectional(model.outputProperty());
+        TextArea result = new TextArea();
+        result.setEditable(false);
+        result.setWrapText(true);
+        result.setMaxHeight(Double.MAX_VALUE);
+        result.textProperty().bindBidirectional(model.outputProperty());
         model.outputProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(() -> {
-                output.selectPositionCaret(output.getLength());
-                output.deselect();  // to remove the text selection
+                result.selectPositionCaret(result.getLength());
+                result.deselect();  // to remove the text selection
             }));
-        return output;
+        return result;
     }
 
     private Node createTextEditor() {
-        TextArea editor = new TextArea();
-        editor.setWrapText(true);
-        editor.textProperty().bindBidirectional(model.dockerFileTextProperty());
-        return editor;
+        TextArea result = new TextArea();
+        result.setWrapText(true);
+        result.textProperty().bindBidirectional(model.dockerFileTextProperty());
+        return result;
     }
 
     //Events and Helpers
@@ -248,6 +248,7 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private void showHandleFileExportDialog(Runnable runnable) {
         FileChooser results = createDockerfileChooser("Export Dockerfile");
+        results.setInitialFileName(model.dockerFileProperty().get().getName());
         File file = results.showSaveDialog(null);
         if (file != null) {
             runnable.run();
