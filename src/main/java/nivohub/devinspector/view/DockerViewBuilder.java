@@ -2,6 +2,8 @@ package nivohub.devinspector.view;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -14,26 +16,39 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.util.Builder;
 import nivohub.devinspector.docker.DockerContainer;
 import nivohub.devinspector.model.DockerModel;
 
+import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 
 
 public class DockerViewBuilder implements Builder<Region> {
 
+    private enum CenterTabs {
+        EDITOR,
+        OUTPUT
+    }
+
     private final DockerModel model;
     private final Runnable connectDockerAction;
     private final Runnable pullAndRunContainerAction;
+    private final Consumer<File> uploadFileAction;
     private final Consumer<String> openBrowserToContainerBindings;
+    private final Runnable exportFileAction;
 
-    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction, Consumer<String> openBrowserToContainerBindings) {
+    private final ObjectProperty<CenterTabs> currentCenterTab = new SimpleObjectProperty<>(CenterTabs.OUTPUT);
+
+    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable exportFileAction) {
         this.model = model;
         this.connectDockerAction = connectDockerAction;
-        this.pullAndRunContainerAction = pullAndRunContainerAction;
         this.openBrowserToContainerBindings = openBrowserToContainerBindings;
+        this.pullAndRunContainerAction = pullAndRunContainerAction;
+        this.uploadFileAction = uploadFileAction;
+        this.exportFileAction = exportFileAction;
     }
     @Override
     public Region build() {
@@ -46,9 +61,10 @@ public class DockerViewBuilder implements Builder<Region> {
 
     //Regions
     private Region setupCenter() {
-        Node tabPane = createTabPane(createOutputTab(), createEditorTab());
-        Region results = createRegionPane(tabPane);
-        return results;
+        TabPane tabPane = createTabPane(createOutputTab(), createEditorTab());
+        setupTabSelectionListener(tabPane);
+        subscribeToCenterTabChanges(tabPane);
+        return createRegionPane(tabPane);
     }
 
     private Region setupLeft() {
@@ -66,8 +82,8 @@ public class DockerViewBuilder implements Builder<Region> {
     //Tabs
     private Tab createDockerfileTab() {
         Tab results = new Tab("Dockerfile");
-        Node uploadButton = styledButton("Upload Dockerfile");
-        Node exportButton = styledButton("Export Dockerfile");
+        Node uploadButton = styledRunnableButton("Upload Dockerfile", () -> showFileUploadDialog(uploadFileAction));
+        Node exportButton = styledRunnableButton("Export Dockerfile", () -> showFileExportDialog(exportFileAction));
         Node runButton = styledButton("Run");
         List<Node> children = List.of(uploadButton, exportButton, runButton);
         Node content = styledVbox(children, Pos.TOP_CENTER);
@@ -121,41 +137,6 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private void addExistingContainers(ObservableList<TitledPane> titledPanes) {
-        for (DockerContainer container : model.getRunningContainers()) {
-            TitledPane pane = createContainerDetails(container);
-            titledPanes.add(pane);
-        }
-    }
-
-    private void addContainerChangeListener(ObservableList<TitledPane> titledPanes) {
-        model.getRunningContainers().addListener((ListChangeListener.Change<? extends DockerContainer> c) -> {
-            while (c.next()) {
-                handleAddedContainers(titledPanes, c);
-                handleRemovedContainers(titledPanes, c);
-            }
-        });
-    }
-
-    private void handleAddedContainers(ObservableList<TitledPane> titledPanes, ListChangeListener.Change<? extends DockerContainer> c) {
-        if (c.wasAdded()) {
-            for (DockerContainer container : c.getAddedSubList()) {
-                Platform.runLater(() -> {
-                    TitledPane pane = createContainerDetails(container);
-                    titledPanes.add(pane);
-                });
-            }
-        }
-    }
-
-    private void handleRemovedContainers(ObservableList<TitledPane> titledPanes, ListChangeListener.Change<? extends DockerContainer> c) {
-        if (c.wasRemoved()) {
-            for (DockerContainer container : c.getRemoved()) {
-                Platform.runLater(() -> titledPanes.removeIf(pane -> pane.getText().equals(container.containerName())));
-            }
-        }
-    }
-
     private TitledPane createContainerDetails(DockerContainer container) {
 
         Node idLabel = styledLabel("Container ID: "+ container.containerId());
@@ -168,7 +149,7 @@ public class DockerViewBuilder implements Builder<Region> {
         return styledTitledPane( container.containerName() + " : "+container.status(), List.of(nameLabel, idLabel, imageLabel, statusLabel, portLabel, portLink));
     }
 
-    private Region createTabPane(Tab firstTab, Tab secondTab ) {
+    private TabPane createTabPane(Tab firstTab, Tab secondTab ) {
         TabPane results = new TabPane();
         results.getTabs().addAll(firstTab, secondTab);
         return results;
@@ -217,8 +198,91 @@ public class DockerViewBuilder implements Builder<Region> {
         return new TextArea();
     }
 
+    //Events and Helpers
+    private void addExistingContainers(ObservableList<TitledPane> titledPanes) {
+        for (DockerContainer container : model.getRunningContainers()) {
+            TitledPane pane = createContainerDetails(container);
+            titledPanes.add(pane);
+        }
+    }
+
+    private void addContainerChangeListener(ObservableList<TitledPane> titledPanes) {
+        model.getRunningContainers().addListener((ListChangeListener.Change<? extends DockerContainer> c) -> {
+            while (c.next()) {
+                handleAddedContainers(titledPanes, c);
+                handleRemovedContainers(titledPanes, c);
+            }
+        });
+    }
+
+    private void handleAddedContainers(ObservableList<TitledPane> titledPanes, ListChangeListener.Change<? extends DockerContainer> c) {
+        if (c.wasAdded()) {
+            for (DockerContainer container : c.getAddedSubList()) {
+                Platform.runLater(() -> {
+                    TitledPane pane = createContainerDetails(container);
+                    titledPanes.add(pane);
+                });
+            }
+        }
+    }
+
+    private void handleRemovedContainers(ObservableList<TitledPane> titledPanes, ListChangeListener.Change<? extends DockerContainer> c) {
+        if (c.wasRemoved()) {
+            for (DockerContainer container : c.getRemoved()) {
+                Platform.runLater(() -> titledPanes.removeIf(pane -> pane.getText().equals(container.containerName())));
+            }
+        }
+    }
+
+    private void showFileUploadDialog(Consumer<File> consumer) {
+        currentCenterTab.set(CenterTabs.EDITOR);
+        FileChooser results = createDockerfileChooser("Upload Dockerfile");
+        File file = results.showOpenDialog(null);
+        if (file != null) {
+            consumer.accept(file);
+        }
+    }
+
+    private void showFileExportDialog(Runnable runnable) {
+        FileChooser results = createDockerfileChooser("Export Dockerfile");
+        File file = results.showSaveDialog(null);
+        if (file != null) {
+            runnable.run();
+        }
+    }
+
+    private void setupTabSelectionListener(TabPane tabPane) {
+        tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+            if (newTab.getText().equalsIgnoreCase("Editor")) {
+                currentCenterTab.set(CenterTabs.EDITOR);
+            } else {
+                currentCenterTab.set(CenterTabs.OUTPUT);
+            }
+        });
+    }
+
+    private void subscribeToCenterTabChanges(TabPane tabPane) {
+        currentCenterTab.subscribe(newTab -> {
+            if (newTab == CenterTabs.EDITOR) {
+                selectTabByIndex(tabPane, 1);
+            } else {
+                selectTabByIndex(tabPane, 0);
+            }
+        });
+    }
+
+    private void selectTabByIndex(TabPane tabPane, int index) {
+        tabPane.getSelectionModel().select(tabPane.getTabs().get(index));
+    }
 
     //Styling
+    private FileChooser createDockerfileChooser(String title) {
+        FileChooser results = new FileChooser();
+        results.setTitle(title);
+        results.getExtensionFilters().add(new FileChooser.ExtensionFilter("Dockerfile", "*.dockerfile"));
+        return results;
+    }
+
     private TitledPane styledTitledPane(String title, List<Node> content) {
         TitledPane results = new TitledPane();
         results.setText(title);
