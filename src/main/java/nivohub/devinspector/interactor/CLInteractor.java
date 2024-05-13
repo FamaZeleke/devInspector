@@ -17,7 +17,7 @@ public class CLInteractor {
         this.model = model;
         this.userModel = userModel;
     }
-
+//todo abstract domain objects to separate package
     public void start() throws Exception {
         // Start a new terminal session
         ExpectJ expectJ = new ExpectJ();

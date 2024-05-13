@@ -1,8 +1,6 @@
 package nivohub.devinspector.model;
 
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 
 public class CLModel {
     private final SimpleStringProperty output = new SimpleStringProperty("");
@@ -17,10 +15,6 @@ public class CLModel {
             String currentOutput = this.output.get();
             this.output.setValue(currentOutput+newOutput);
         }
-    }
-
-    public String getOutput() {
-        return this.output.toString();
     }
 
     public String getMenuCommand() {

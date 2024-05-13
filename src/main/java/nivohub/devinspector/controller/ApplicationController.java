@@ -17,7 +17,9 @@ public class ApplicationController {
         viewBuilder = new ApplicationBuilder(appModel,
                 new MenuBarController(appModel).getMenu(),
                 new HomeController().getView(),
-                new CLController(userModel).getView());
+                new CLController(userModel).getView(),
+                new DockerController(userModel).getView()
+        );
     }
 
     public Region getView(){

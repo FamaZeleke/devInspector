@@ -7,7 +7,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
 import nivohub.devinspector.model.ApplicationModel;
-import nivohub.devinspector.model.UserModel;
 import nivohub.devinspector.model.View;
 
 public class ApplicationBuilder implements Builder<Region> {
@@ -16,13 +15,15 @@ public class ApplicationBuilder implements Builder<Region> {
     private final MenuBar menu;
     private final Region home;
     private final Region cliView;
+    private final Region dockerView;
     // Use user info ^
 
-    public ApplicationBuilder(ApplicationModel model, MenuBar menu, Region home, Region cliView){
+    public ApplicationBuilder(ApplicationModel model, MenuBar menu, Region home, Region cliView, Region dockerView) {
         this.appModel = model;
         this.menu = menu;
         this.home = home;
         this.cliView = cliView;
+        this.dockerView = dockerView;
     }
 
     @Override
@@ -37,6 +38,7 @@ public class ApplicationBuilder implements Builder<Region> {
     private Region createViews(){
         home.visibleProperty().bind(appModel.currentViewProperty().isEqualTo(View.HOME));
         cliView.visibleProperty().bind(appModel.currentViewProperty().isEqualTo(View.CLI));
-        return new StackPane(home, cliView);
+        dockerView.visibleProperty().bind(appModel.currentViewProperty().isEqualTo(View.DOCKER));
+        return new StackPane(home, cliView, dockerView);
     }
 }

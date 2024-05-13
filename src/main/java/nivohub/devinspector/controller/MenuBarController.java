@@ -21,11 +21,8 @@ public class MenuBarController {
 
     private void handleView(View view) {
         switch (view) {
-            case HOME, DOCKER -> {
-                interactor.showView(View.HOME);
-            }
-            case CLI -> {
-                interactor.showView(View.CLI);
+            case HOME, DOCKER, CLI -> {
+                interactor.showView(view);
             }
             case EXIT -> {
                 System.exit(0);
