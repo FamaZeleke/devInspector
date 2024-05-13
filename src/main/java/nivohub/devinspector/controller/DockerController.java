@@ -10,6 +10,8 @@ import nivohub.devinspector.model.UserModel;
 import nivohub.devinspector.view.DockerViewBuilder;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public class DockerController extends BaseController {
     private final DockerInteractor interactor;
@@ -21,18 +23,29 @@ public class DockerController extends BaseController {
     }
 
     private void exportFileAction() {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws FileNotFoundException {
+                interactor.exportFile();
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> interactor.addToOutput("File exported"));
+        task.setOnFailed(e -> interactor.addToOutput(e.getSource().getException().getMessage()));
+        // Running as Task as this is unlikely to be a long-running task
+        task.run();
     }
 
     private void uploadFileEvent(File file) {
         Task<String> task = new Task<>() {
             @Override
-            protected String call() {
+            protected String call() throws IOException {
                 return interactor.uploadDockerFile(file);
             }
         };
         task.setOnSucceeded(e -> interactor.addToOutput("File uploaded: "+e.getSource().getValue()));
         task.setOnFailed(e -> interactor.addToOutput(e.getSource().getException().getMessage()));
-        new Thread(task).start();
+        task.run();
     }
 
     private void openBrowserToContainerBindings(String containerId) {
