@@ -67,7 +67,7 @@ public class DockerEngine {
 
 
 
-    public DockerContainer createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException {
+    public DockerContainer createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException, InterruptedException {
         pullImage(imageName, tag);
         HostConfig hostConfig = configurePortBindings(hostPort, exposedPort);
         String containerId = createContainer(imageName, tag, containerName, hostConfig);
@@ -82,13 +82,13 @@ public class DockerEngine {
         return new DockerContainer(containerId, containerNameFromInfo, hostPortFromInfo, exposedPortFromInfo, imageFromInfo, "Running");
     }
 
-    private void pullImage(String imageName, String tag) {
+    private void pullImage(String imageName, String tag) throws InterruptedException {
         try {
             dockerClient.pullImageCmd(imageName + ":" + tag)
                     .exec(new PullImageResultCallback())
                     .awaitCompletion();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new InterruptedException(e.getMessage());
         }
     }
 
