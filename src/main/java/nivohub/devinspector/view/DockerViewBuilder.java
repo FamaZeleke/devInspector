@@ -4,7 +4,7 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -82,8 +82,8 @@ public class DockerViewBuilder implements Builder<Region> {
     //Tabs
     private Tab createDockerfileTab() {
         Tab results = new Tab("Dockerfile");
-        Node uploadButton = styledRunnableButton("Upload Dockerfile", () -> showFileUploadDialog(uploadFileAction));
-        Node exportButton = styledRunnableButton("Export Dockerfile", () -> showFileExportDialog(exportFileAction));
+        Node uploadButton = styledRunnableButton("Upload Dockerfile", () -> showHandleFileUploadDialog(uploadFileAction));
+        Node exportButton = styledRunnableButton("Export Dockerfile", () -> showHandleFileExportDialog(exportFileAction));
         Node runButton = styledButton("Run");
         List<Node> children = List.of(uploadButton, exportButton, runButton);
         Node content = styledVbox(children, Pos.TOP_CENTER);
@@ -195,7 +195,10 @@ public class DockerViewBuilder implements Builder<Region> {
     }
 
     private Node createTextEditor() {
-        return new TextArea();
+        TextArea editor = new TextArea();
+        editor.setWrapText(true);
+        editor.textProperty().bindBidirectional(model.dockerFileTextProperty());
+        return editor;
     }
 
     //Events and Helpers
@@ -234,7 +237,7 @@ public class DockerViewBuilder implements Builder<Region> {
         }
     }
 
-    private void showFileUploadDialog(Consumer<File> consumer) {
+    private void showHandleFileUploadDialog(Consumer<File> consumer) {
         currentCenterTab.set(CenterTabs.EDITOR);
         FileChooser results = createDockerfileChooser("Upload Dockerfile");
         File file = results.showOpenDialog(null);
@@ -243,7 +246,7 @@ public class DockerViewBuilder implements Builder<Region> {
         }
     }
 
-    private void showFileExportDialog(Runnable runnable) {
+    private void showHandleFileExportDialog(Runnable runnable) {
         FileChooser results = createDockerfileChooser("Export Dockerfile");
         File file = results.showSaveDialog(null);
         if (file != null) {
@@ -279,7 +282,7 @@ public class DockerViewBuilder implements Builder<Region> {
     private FileChooser createDockerfileChooser(String title) {
         FileChooser results = new FileChooser();
         results.setTitle(title);
-        results.getExtensionFilters().add(new FileChooser.ExtensionFilter("Dockerfile", "*.dockerfile"));
+        results.getExtensionFilters().add(new FileChooser.ExtensionFilter("Dockerfile", "Dockerfile"));
         return results;
     }
 
@@ -322,7 +325,7 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private Node styledTextField(String prompt, SimpleStringProperty binding) {
+    private Node styledTextField(String prompt, StringProperty binding) {
         TextField results = new TextField();
         results.setPromptText(prompt);
         results.setPrefWidth(150);
@@ -343,7 +346,7 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private Node styledComboBox(String prompt, ObservableList<String> items, SimpleStringProperty binding) {
+    private Node styledComboBox(String prompt, ObservableList<String> items, StringProperty binding) {
         ComboBox<String> results = new ComboBox<>();
         results.setPromptText(prompt);
         results.setPrefWidth(150);
