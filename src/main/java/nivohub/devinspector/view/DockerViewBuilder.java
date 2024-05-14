@@ -150,18 +150,18 @@ public class DockerViewBuilder implements Builder<Region> {
         Node idLabel = styledLabel("Container ID: "+ container.getContainerId());
         Node nameLabel = styledLabel("Container Name: " + container.getContainerName());
         Node imageLabel = styledLabel("Container Image: " + container.getImage());
-        Node statusLabel = styledLabel("Container Status: " + container.getRunning());
+        String status = container.getRunning().get() ? "Running" : "Stopped";
+        Node statusLabel = styledLabel("Container Status: " + status);
         Node portLabel = styledLabel("Configured Port (Click Me!): ");
         Hyperlink portLink = new Hyperlink("http://localhost:"+ container.getHostPort());
         portLink.setOnAction(e -> openBrowserToContainerBindings.accept(container.getContainerId()));
         Node startContainerButton = styledRunnableButton("Start", () -> startContainerAction.accept(container.getContainerId()));
         Node stopContainerButton = styledRunnableButton("Stop", () -> stopContainerAction.accept(container.getContainerId()));
-        //replace with boolean binding
         startContainerButton.disableProperty().bind(container.runningProperty());
         stopContainerButton.disableProperty().bind(container.runningProperty().not());
         Node removeContainerButton = styledRunnableButton("Remove", () -> removeContainerAction.accept(container.getContainerId()));
 
-        String status = container.getRunning().get() ? "Running" : "Stopped";
+
         return styledTitledPane( container.getContainerName() + " : "+status, List.of(nameLabel, idLabel, imageLabel, statusLabel, portLabel, portLink, startContainerButton, stopContainerButton, removeContainerButton));
     }
 

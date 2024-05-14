@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class DockerEngine {
@@ -72,29 +73,24 @@ public class DockerEngine {
     }
 
 
-    public DockerContainer createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException, InterruptedException {
+    public String createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException, InterruptedException {
         pullImage(imageName, tag);
         HostConfig hostConfig = configurePortBindings(hostPort, exposedPort);
         String containerId = createContainer(imageName, tag, containerName, hostConfig);
         startContainer(containerId);
 
-        InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(containerId).exec();
+        InspectContainerResponse containerInfo = getContainerInfo(containerId);
         String containerNameFromInfo = containerInfo.getName().substring(1); // Remove leading slash
         String hostPortFromInfo = String.valueOf(hostPort);
         String exposedPortFromInfo = String.valueOf(exposedPort);
         String imageFromInfo = containerInfo.getConfig().getImage();
 
-        return new DockerContainer(containerId, containerNameFromInfo, hostPortFromInfo, exposedPortFromInfo, imageFromInfo, true);
+//        return new DockerContainer(containerId, containerNameFromInfo, hostPortFromInfo, exposedPortFromInfo, imageFromInfo, true);
+        return containerId;
     }
 
-    private void pullImage(String imageName, String tag) throws InterruptedException {
-        try {
-            dockerClient.pullImageCmd(imageName + ":" + tag)
-                    .exec(new PullImageResultCallback())
-                    .awaitCompletion();
-        } catch (InterruptedException e) {
-            throw new InterruptedException(e.getMessage());
-        }
+    public InspectContainerResponse getContainerInfo(String containerId) {
+        return dockerClient.inspectContainerCmd(containerId).exec();
     }
 
     private HostConfig configurePortBindings(int hostPort, int exposedPort) {
@@ -111,39 +107,6 @@ public class DockerEngine {
                 .withName(containerName)
                 .exec();
         return container.getId();
-    }
-
-    public void startContainer(String containerId) throws BindingPortAlreadyAllocatedException {
-        try {
-            dockerClient.startContainerCmd(containerId).exec();
-        } catch (InternalServerErrorException e) {
-            if (e.getMessage().contains("port is already allocated")) {
-                throw new BindingPortAlreadyAllocatedException("Port is already allocated" + containerId);
-            }
-            throw e;
-        }
-    }
-
-    public void stopContainer(String containerId) {
-        dockerClient.stopContainerCmd(containerId).exec();
-    }
-
-    public void removeContainer(String containerId) {
-        dockerClient.removeContainerCmd(containerId).exec();
-    }
-
-
-    public void buildImageFromDockerfile(File file) {
-        dockerClient.buildImageCmd()
-                .withDockerfile(file)
-                .exec(new BuildImageResultCallback() {
-                    @Override
-                    public void onNext(BuildResponseItem item) {
-                        super.onNext(item);
-                        System.out.println("" + item.getStream());
-                    }
-                })
-                .awaitImageId();
     }
 
     public void streamContainerLogs(String containerId, Consumer<String> logHandler) {
@@ -176,4 +139,56 @@ public class DockerEngine {
             logHandler.accept("Failed to start log streaming for container " + containerId + ": " + e.getMessage());
         }
     }
+
+    public void startContainer(String containerId) throws BindingPortAlreadyAllocatedException {
+        try {
+            dockerClient.startContainerCmd(containerId).exec();
+        } catch (InternalServerErrorException e) {
+            if (e.getMessage().contains("port is already allocated")) {
+                throw new BindingPortAlreadyAllocatedException("Port is already allocated" + containerId);
+            }
+            throw e;
+        }
+    }
+
+    public void stopContainer(String containerId) {
+        dockerClient.stopContainerCmd(containerId).exec();
+    }
+
+    public void removeContainer(String containerId) {
+        dockerClient.removeContainerCmd(containerId).exec();
+    }
+
+    private void pullImage(String imageName, String tag) throws InterruptedException {
+        try {
+            dockerClient.pullImageCmd(imageName + ":" + tag)
+                    .exec(new PullImageResultCallback())
+                    .awaitCompletion();
+        } catch (InterruptedException e) {
+            throw new InterruptedException(e.getMessage());
+        }
+    }
+
+    public String buildImageFromDockerfile(File file) {
+        return dockerClient.buildImageCmd()
+                .withDockerfile(file)
+                .exec(new BuildImageResultCallback() {
+                    @Override
+                    public void onNext(BuildResponseItem item) {
+                        super.onNext(item);
+                        System.out.println("" + item.getStream());
+                    }
+                })
+                .awaitImageId();
+    }
+
+    public void removeImage(String imageId) {
+        dockerClient.removeImageCmd(imageId).exec();
+    }
+
+//    public DockerContainer listContainers() {
+//        List<Container> containers = dockerClient.listContainersCmd().exec().
+//    }
+
+
 }

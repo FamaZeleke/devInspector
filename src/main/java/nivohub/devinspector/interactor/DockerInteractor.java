@@ -1,5 +1,8 @@
 package nivohub.devinspector.interactor;
 
+import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.Ports;
 import javafx.application.Platform;
 import nivohub.devinspector.docker.DockerContainer;
 import nivohub.devinspector.docker.DockerEngine;
@@ -15,6 +18,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.util.Map;
 
 public class DockerInteractor {
     private final DockerModel model;
@@ -26,6 +30,7 @@ public class DockerInteractor {
         this.dockerEngine = new DockerEngine(userModel.getPlatform());
     }
 
+    // Connect to the Docker engine
     public void connectDocker() throws DockerNotRunningException {
         dockerEngine.createDockerClient();
     }
@@ -38,13 +43,16 @@ public class DockerInteractor {
         model.dockerConnectedProperty().set(status);
     }
 
+    //Container operations
     public String pullAndRunContainer() throws InterruptedException, BindingPortAlreadyAllocatedException {
         stopLogStream();
-        DockerContainer result;
+        String result;
         result = dockerEngine.createAndRunContainer(model.selectedImageProperty().get(), model.selectedTagProperty().get(), model.formContainerNameProperty().get(), Integer.parseInt(model.formContainerHostPortProperty().get()), Integer.parseInt(model.formContainerPortProperty().get()));
-        streamLogs(result.getContainerId());
-        addContainerToList(result);
-        return result.getContainerId();
+        InspectContainerResponse containerInfo = dockerEngine.getContainerInfo(result);
+        DockerContainer containerObject = setContainerObject(containerInfo, result);
+        addContainerToList(containerObject);
+        streamLogs(result);
+        return result;
     }
 
     public void removeContainer(String containerId) {
@@ -62,6 +70,27 @@ public class DockerInteractor {
         dockerEngine.stopContainer(containerId);
     }
 
+    public void openBrowserToPort(String containerId) throws IOException, URISyntaxException {
+        String ports = getPortsForContainer(containerId);
+        String url = "http://localhost:"+ports;
+        java.awt.Desktop.getDesktop().browse(new URI(url));
+    }
+
+    public void streamLogs(String containerId) {
+        addToOutput("Starting log stream");
+        logThread = new Thread(() -> dockerEngine.streamContainerLogs(containerId, logMessage ->
+                Platform.runLater(() -> model.addToOutput(logMessage))));
+        logThread.start();
+    }
+
+    public void stopLogStream() {
+        if (logThread != null) {
+            logThread.interrupt();
+            addToOutput("Log stream stopped");
+        }
+    }
+
+    //Model operations
     public void addToOutput (String message) {
         model.addToOutput(" \n"+message);
     }
@@ -76,27 +105,6 @@ public class DockerInteractor {
 
     public void updateContainerStatus(String containerId, Boolean status) {
         model.updateContainerStatus(containerId, status);
-    }
-
-    public void streamLogs(String containerId) {
-        addToOutput("Starting log stream");
-        logThread = new Thread(() -> dockerEngine.streamContainerLogs(containerId, logMessage ->
-            Platform.runLater(() -> model.addToOutput(logMessage))));
-        logThread.start();
-    }
-
-    public void stopLogStream() {
-        if (logThread != null) {
-            logThread.interrupt();
-            addToOutput("Log stream stopped");
-        }
-    }
-
-
-    public void openBrowserToPort(String containerId) throws IOException, URISyntaxException {
-        String ports = getPortsForContainer(containerId);
-        String url = "http://localhost:"+ports;
-        java.awt.Desktop.getDesktop().browse(new URI(url));
     }
 
     private String getPortsForContainer(String containerId) {
@@ -119,5 +127,16 @@ public class DockerInteractor {
             PrintWriter writer = new PrintWriter(model.dockerFileProperty().get());
             writer.write(model.dockerFileTextProperty().get());
             writer.close();
+    }
+
+    //Helpers
+    public DockerContainer setContainerObject(InspectContainerResponse containerInfo, String containerId) {
+        String containerNameFromInfo = containerInfo.getName().substring(1); // Remove leading slash
+        Map.Entry<ExposedPort,Ports.Binding[]> portBindings = containerInfo.getHostConfig().getPortBindings().getBindings().entrySet().iterator().next();
+        String hostPortFromInfo = String.valueOf(portBindings.getValue()[0].getHostPortSpec());
+        String exposedPortFromInfo = String.valueOf(portBindings.getKey().getPort());
+        String imageFromInfo = containerInfo.getConfig().getImage();
+        Boolean status = containerInfo.getState().getRunning();
+        return new DockerContainer(containerId, containerNameFromInfo, hostPortFromInfo, exposedPortFromInfo, imageFromInfo, status);
     }
 }
