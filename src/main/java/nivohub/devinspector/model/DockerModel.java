@@ -130,9 +130,9 @@ public class DockerModel {
     public void updateContainerListeningStatus(String containerId, Boolean status) {
         runningContainers.forEach(container -> {
             if (container.getContainerId().equals(containerId)) {
-                container.listingProperty().set(status);
+                container.listeningProperty().set(status);
             } else {
-                container.listingProperty().set(false);
+                container.listeningProperty().set(false);
             }
         });
     }
