@@ -1,23 +1,49 @@
 package nivohub.devinspector.controller;
 
 import javafx.concurrent.Task;
-import javafx.scene.layout.Region;
-import javafx.util.Builder;
 import nivohub.devinspector.exceptions.DockerNotRunningException;
 import nivohub.devinspector.interactor.DockerInteractor;
 import nivohub.devinspector.model.DockerModel;
 import nivohub.devinspector.model.UserModel;
 import nivohub.devinspector.view.DockerViewBuilder;
 
-public class DockerController {
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
+public class DockerController extends BaseController {
     private final DockerInteractor interactor;
-    private final Builder<Region> viewBuilder;
 
     public DockerController(UserModel userModel) {
         DockerModel model = new DockerModel();
         interactor = new DockerInteractor(model, userModel);
-        viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::connectDocker, this::openBrowserToContainerBindings);
+        viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::connectDocker, this::openBrowserToContainerBindings, this::uploadFileEvent, this::exportFileAction);
+    }
+
+    private void exportFileAction() {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws FileNotFoundException {
+                interactor.exportFile();
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> interactor.addToOutput("File exported"));
+        task.setOnFailed(e -> interactor.addToOutput(e.getSource().getException().getMessage()));
+        // Running as Task as this is unlikely to be a long-running task
+        task.run();
+    }
+
+    private void uploadFileEvent(File file) {
+        Task<String> task = new Task<>() {
+            @Override
+            protected String call() throws IOException {
+                return interactor.uploadDockerFile(file);
+            }
+        };
+        task.setOnSucceeded(e -> interactor.addToOutput("File uploaded: "+e.getSource().getValue()));
+        task.setOnFailed(e -> interactor.addToOutput(e.getSource().getException().getMessage()));
+        task.run();
     }
 
     private void openBrowserToContainerBindings(String containerId) {
@@ -53,12 +79,10 @@ public class DockerController {
                 return interactor.pullAndRunContainer();
             }
         };
+        //TODO Validate that this thread exits
         task.setOnSucceeded(e -> interactor.addToOutput("Container created with id: " + e.getSource().getValue()));
         task.setOnFailed(e -> interactor.addToOutput(e.getSource().getException().getMessage()));
         new Thread(task).start();
     }
 
-    public Region getView(){
-        return viewBuilder.build();
-    }
 }

@@ -2,7 +2,9 @@ package nivohub.devinspector.view;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -14,26 +16,39 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.util.Builder;
 import nivohub.devinspector.docker.DockerContainer;
 import nivohub.devinspector.model.DockerModel;
 
+import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 
 
 public class DockerViewBuilder implements Builder<Region> {
 
+    private enum CenterTabs {
+        EDITOR,
+        OUTPUT
+    }
+
     private final DockerModel model;
     private final Runnable connectDockerAction;
     private final Runnable pullAndRunContainerAction;
+    private final Consumer<File> uploadFileAction;
     private final Consumer<String> openBrowserToContainerBindings;
+    private final Runnable exportFileAction;
 
-    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction, Consumer<String> openBrowserToContainerBindings) {
+    private final ObjectProperty<CenterTabs> currentCenterTab = new SimpleObjectProperty<>(CenterTabs.OUTPUT);
+
+    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable exportFileAction) {
         this.model = model;
         this.connectDockerAction = connectDockerAction;
-        this.pullAndRunContainerAction = pullAndRunContainerAction;
         this.openBrowserToContainerBindings = openBrowserToContainerBindings;
+        this.pullAndRunContainerAction = pullAndRunContainerAction;
+        this.uploadFileAction = uploadFileAction;
+        this.exportFileAction = exportFileAction;
     }
     @Override
     public Region build() {
@@ -46,9 +61,10 @@ public class DockerViewBuilder implements Builder<Region> {
 
     //Regions
     private Region setupCenter() {
-        Node tabPane = createTabPane(createOutputTab(), createEditorTab());
-        Region results = createRegionPane(tabPane);
-        return results;
+        TabPane tabPane = createTabPane(createOutputTab(), createEditorTab());
+        setupTabSelectionListener(tabPane);
+        subscribeToCenterTabChanges(tabPane);
+        return createRegionPane(tabPane);
     }
 
     private Region setupLeft() {
@@ -66,8 +82,8 @@ public class DockerViewBuilder implements Builder<Region> {
     //Tabs
     private Tab createDockerfileTab() {
         Tab results = new Tab("Dockerfile");
-        Node uploadButton = styledButton("Upload Dockerfile");
-        Node exportButton = styledButton("Export Dockerfile");
+        Node uploadButton = styledRunnableButton("Upload Dockerfile", () -> showHandleFileUploadDialog(uploadFileAction));
+        Node exportButton = styledRunnableButton("Export Dockerfile", () -> showHandleFileExportDialog(exportFileAction));
         Node runButton = styledButton("Run");
         List<Node> children = List.of(uploadButton, exportButton, runButton);
         Node content = styledVbox(children, Pos.TOP_CENTER);
@@ -121,6 +137,71 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
+    private TitledPane createContainerDetails(DockerContainer container) {
+
+        Node idLabel = styledLabel("Container ID: "+ container.containerId());
+        Node nameLabel = styledLabel("Container Name: " + container.containerName());
+        Node imageLabel = styledLabel("Container Image: " + container.image());
+        Node statusLabel = styledLabel("Container Status: " + container.status());
+        Node portLabel = styledLabel("Configured Port (Click Me!): ");
+        Hyperlink portLink = new Hyperlink("Http://localhost:"+ container.hostPort());
+        portLink.setOnAction(e -> openBrowserToContainerBindings.accept(container.containerId()));
+        return styledTitledPane( container.containerName() + " : "+container.status(), List.of(nameLabel, idLabel, imageLabel, statusLabel, portLabel, portLink));
+    }
+
+    private TabPane createTabPane(Tab firstTab, Tab secondTab ) {
+        TabPane results = new TabPane();
+        results.getTabs().addAll(firstTab, secondTab);
+        return results;
+    }
+
+    private Node createBox() {
+        Label label = (Label) styledLabel("Docker is not running");
+        label.textProperty().bind(Bindings.when(model.dockerConnectedProperty())
+                .then("Docker is running")
+                .otherwise("Docker is not running"));
+        label.textFillProperty().bind(Bindings.when(model.dockerConnectedProperty())
+                .then(javafx.scene.paint.Color.GREEN)
+                .otherwise(javafx.scene.paint.Color.RED));
+        Node connectDocker = styledRunnableButton("Connect Docker", connectDockerAction);
+        connectDocker.disableProperty().bind(model.dockerConnectedProperty());
+        return styledVbox(List.of(label, connectDocker), Pos.CENTER);
+    }
+
+    private Region createRegionPane(Node child, Insets insets) {
+        AnchorPane results = new AnchorPane();
+        results.getChildren().addAll(child);
+        results.setPadding(insets);
+
+        AnchorPane.setBottomAnchor(child, 0.0);
+        AnchorPane.setTopAnchor(child, 0.0);
+        AnchorPane.setLeftAnchor(child, 0.0);
+        AnchorPane.setRightAnchor(child, 0.0);
+
+        return results;
+    }
+
+    private Node createOutputArea() {
+        TextArea result = new TextArea();
+        result.setEditable(false);
+        result.setWrapText(true);
+        result.setMaxHeight(Double.MAX_VALUE);
+        result.textProperty().bindBidirectional(model.outputProperty());
+        model.outputProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(() -> {
+                result.selectPositionCaret(result.getLength());
+                result.deselect();  // to remove the text selection
+            }));
+        return result;
+    }
+
+    private Node createTextEditor() {
+        TextArea result = new TextArea();
+        result.setWrapText(true);
+        result.textProperty().bindBidirectional(model.dockerFileTextProperty());
+        return result;
+    }
+
+    //Events and Helpers
     private void addExistingContainers(ObservableList<TitledPane> titledPanes) {
         for (DockerContainer container : model.getRunningContainers()) {
             TitledPane pane = createContainerDetails(container);
@@ -156,69 +237,56 @@ public class DockerViewBuilder implements Builder<Region> {
         }
     }
 
-    private TitledPane createContainerDetails(DockerContainer container) {
-
-        Node idLabel = styledLabel("Container ID: "+ container.containerId());
-        Node nameLabel = styledLabel("Container Name: " + container.containerName());
-        Node imageLabel = styledLabel("Container Image: " + container.image());
-        Node statusLabel = styledLabel("Container Status: " + container.status());
-        Node portLabel = styledLabel("Configured Port (Click Me!): ");
-        Hyperlink portLink = new Hyperlink("Http://localhost:"+ container.hostPort());
-        portLink.setOnAction(e -> openBrowserToContainerBindings.accept(container.containerId()));
-        return styledTitledPane( container.containerName() + " : "+container.status(), List.of(nameLabel, idLabel, imageLabel, statusLabel, portLabel, portLink));
+    private void showHandleFileUploadDialog(Consumer<File> consumer) {
+        currentCenterTab.set(CenterTabs.EDITOR);
+        FileChooser results = createDockerfileChooser("Upload Dockerfile");
+        File file = results.showOpenDialog(null);
+        if (file != null) {
+            consumer.accept(file);
+        }
     }
 
-    private Region createTabPane(Tab firstTab, Tab secondTab ) {
-        TabPane results = new TabPane();
-        results.getTabs().addAll(firstTab, secondTab);
-        return results;
+    private void showHandleFileExportDialog(Runnable runnable) {
+        FileChooser results = createDockerfileChooser("Export Dockerfile");
+        results.setInitialFileName(model.dockerFileProperty().get().getName());
+        File file = results.showSaveDialog(null);
+        if (file != null) {
+            runnable.run();
+        }
     }
 
-    private Node createBox() {
-        Label label = (Label) styledLabel("Docker is not running");
-        label.textProperty().bind(Bindings.when(model.dockerConnectedProperty())
-                .then("Docker is running")
-                .otherwise("Docker is not running"));
-        label.textFillProperty().bind(Bindings.when(model.dockerConnectedProperty())
-                .then(javafx.scene.paint.Color.GREEN)
-                .otherwise(javafx.scene.paint.Color.RED));
-        Node connectDocker = styledRunnableButton("Connect Docker", connectDockerAction);
-        connectDocker.disableProperty().bind(model.dockerConnectedProperty());
-        return styledVbox(List.of(label, connectDocker), Pos.CENTER);
+    private void setupTabSelectionListener(TabPane tabPane) {
+        tabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
+            if (newTab.getText().equalsIgnoreCase("Editor")) {
+                currentCenterTab.set(CenterTabs.EDITOR);
+            } else {
+                currentCenterTab.set(CenterTabs.OUTPUT);
+            }
+        });
     }
 
-    private Region createRegionPane(Node child, Insets insets) {
-        AnchorPane results = new AnchorPane();
-        results.getChildren().addAll(child);
-        results.setPadding(insets);
-
-        AnchorPane.setBottomAnchor(child, 0.0);
-        AnchorPane.setTopAnchor(child, 0.0);
-        AnchorPane.setLeftAnchor(child, 0.0);
-        AnchorPane.setRightAnchor(child, 0.0);
-
-        return results;
+    private void subscribeToCenterTabChanges(TabPane tabPane) {
+        currentCenterTab.subscribe(newTab -> {
+            if (newTab == CenterTabs.EDITOR) {
+                selectTabByIndex(tabPane, 1);
+            } else {
+                selectTabByIndex(tabPane, 0);
+            }
+        });
     }
 
-    private Node createOutputArea() {
-        TextArea output = new TextArea();
-        output.setEditable(false);
-        output.setWrapText(true);
-        output.setMaxHeight(Double.MAX_VALUE);
-        output.textProperty().bindBidirectional(model.outputProperty());
-        model.outputProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(() -> {
-                output.selectPositionCaret(output.getLength());
-                output.deselect();  // to remove the text selection
-            }));
-        return output;
+    private void selectTabByIndex(TabPane tabPane, int index) {
+        tabPane.getSelectionModel().select(tabPane.getTabs().get(index));
     }
-
-    private Node createTextEditor() {
-        return new TextArea();
-    }
-
 
     //Styling
+    private FileChooser createDockerfileChooser(String title) {
+        FileChooser results = new FileChooser();
+        results.setTitle(title);
+        results.getExtensionFilters().add(new FileChooser.ExtensionFilter("Dockerfile", "Dockerfile"));
+        return results;
+    }
+
     private TitledPane styledTitledPane(String title, List<Node> content) {
         TitledPane results = new TitledPane();
         results.setText(title);
@@ -258,7 +326,7 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private Node styledTextField(String prompt, SimpleStringProperty binding) {
+    private Node styledTextField(String prompt, StringProperty binding) {
         TextField results = new TextField();
         results.setPromptText(prompt);
         results.setPrefWidth(150);
@@ -279,7 +347,7 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private Node styledComboBox(String prompt, ObservableList<String> items, SimpleStringProperty binding) {
+    private Node styledComboBox(String prompt, ObservableList<String> items, StringProperty binding) {
         ComboBox<String> results = new ComboBox<>();
         results.setPromptText(prompt);
         results.setPrefWidth(150);

@@ -1,7 +1,6 @@
 package nivohub.devinspector.controller;
 
 import javafx.concurrent.Task;
-import javafx.scene.layout.Region;
 import nivohub.devinspector.exceptions.InvalidCommandException;
 import nivohub.devinspector.interactor.CLInteractor;
 import nivohub.devinspector.model.CLModel;
@@ -13,13 +12,12 @@ import nivohub.devinspector.view.CLViewBuilder;
  * It provides functionality to execute commands in the terminal based on the platform.
  */
 
-public class CLController {
+public class CLController extends BaseController {
 
-    private final Region view;
     private final CLInteractor interactor;
     public CLController(UserModel userModel) {
         CLModel model = new CLModel();
-        view = new CLViewBuilder(model, this::handleCommand, this::manageCLI, this::runCLMenu).build();
+        viewBuilder = new CLViewBuilder(model, this::handleCommand, this::manageCLI, this::runCLMenu);
         interactor = new CLInteractor(model, userModel);
     }
 
@@ -89,11 +87,6 @@ public class CLController {
         });
         new Thread(executeCommand).start();
     }
-
-    public Region getView() {
-        return view;
-    }
-
 
     public enum TaskType {
         START,

@@ -11,26 +11,20 @@ import nivohub.devinspector.view.MenuBarBuilder;
 public class MenuBarController {
     private final Builder<MenuBar> viewBuilder;
     private final MenuBarInteractor interactor;
-    private final ApplicationModel model;
 
     public MenuBarController(ApplicationModel applicationModel) {
-        this.model = applicationModel;
-        interactor = new MenuBarInteractor(model);
+        interactor = new MenuBarInteractor(applicationModel);
         viewBuilder = new MenuBarBuilder(this::handleView);
     }
 
     private void handleView(View view) {
         switch (view) {
-            case HOME, DOCKER, CLI -> {
-                interactor.showView(view);
-            }
-            case EXIT -> {
-                System.exit(0);
-            }
+            case HOME, DOCKER, CLI -> interactor.showView(view);
+            case EXIT -> System.exit(0);
         }
     }
 
-    public MenuBar getMenu(){
+    public MenuBar getView(){
         return viewBuilder.build();
     }
 }

@@ -1,6 +1,7 @@
 package nivohub.devinspector.interactor;
 
 import javafx.beans.binding.Bindings;
+import nivohub.devinspector.exceptions.PasswordException;
 import nivohub.devinspector.model.UserModel;
 
 public class LoginInteractor {
@@ -14,14 +15,15 @@ public class LoginInteractor {
         return model.getPassword().equals(model.getInputPassword());
     }
 
-    public boolean attemptLogin(){
+    public boolean attemptLogin() throws PasswordException {
         if (isPasswordValid()){
-            model.loginFailedProperty().set(false);
-            System.out.println("Password is valid!");
             return true;
         } else {
-            model.loginFailedProperty().set(true);
-            return false;
+            throw new PasswordException("Invalid password");
         }
+    }
+
+    public void updateFailedLogin(Boolean result){
+        model.loginFailedProperty().set(result);
     }
 }

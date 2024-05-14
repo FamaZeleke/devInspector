@@ -66,7 +66,6 @@ public class DockerEngine {
     }
 
 
-
     public DockerContainer createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException, InterruptedException {
         pullImage(imageName, tag);
         HostConfig hostConfig = configurePortBindings(hostPort, exposedPort);
