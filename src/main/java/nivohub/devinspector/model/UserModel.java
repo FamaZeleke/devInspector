@@ -6,10 +6,10 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class UserModel {
-    private StringProperty fullName = new SimpleStringProperty("");
-    private StringProperty inputPassword = new SimpleStringProperty("");
-    private BooleanProperty loginFailed = new SimpleBooleanProperty(this, "loginFailed", false);
-    private BooleanProperty authenticated = new SimpleBooleanProperty(this, "authorized", false);
+    private final StringProperty fullName = new SimpleStringProperty("");
+    private final StringProperty inputPassword = new SimpleStringProperty("");
+    private final BooleanProperty loginFailed = new SimpleBooleanProperty(this, "loginFailed", false);
+    private final BooleanProperty authenticated = new SimpleBooleanProperty(this, "authorized", false);
     private final String password = "letmein";
     private String platform;
     private String osArch;

@@ -14,8 +14,10 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import nivohub.devinspector.exceptions.BindingPortAlreadyAllocatedException;
+import nivohub.devinspector.exceptions.DockerNotRunningException;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.function.Consumer;
@@ -29,7 +31,7 @@ public class DockerEngine {
      this.platform = platform;
     }
 
-    public void createDockerClient() {
+    public void createDockerClient() throws DockerNotRunningException {
         DockerClientConfig config;
         if (platform.equals("windows")) {
             System.out.println("Creating Docker client for Windows platform");
@@ -56,12 +58,16 @@ public class DockerEngine {
         isDockerRunning();
     }
 
-    public boolean isDockerRunning() {
+    public void closeDockerClient() throws IOException {
+        dockerClient.close();
+    }
+
+    public boolean isDockerRunning() throws DockerNotRunningException {
         try {
             dockerClient.pingCmd().exec();
             return true;
         } catch (Exception e) {
-            return false;
+            throw new DockerNotRunningException(e.getMessage());
         }
     }
 
@@ -78,7 +84,7 @@ public class DockerEngine {
         String exposedPortFromInfo = String.valueOf(exposedPort);
         String imageFromInfo = containerInfo.getConfig().getImage();
 
-        return new DockerContainer(containerId, containerNameFromInfo, hostPortFromInfo, exposedPortFromInfo, imageFromInfo, "Running");
+        return new DockerContainer(containerId, containerNameFromInfo, hostPortFromInfo, exposedPortFromInfo, imageFromInfo, true);
     }
 
     private void pullImage(String imageName, String tag) throws InterruptedException {
@@ -107,7 +113,7 @@ public class DockerEngine {
         return container.getId();
     }
 
-    private void startContainer(String containerId) throws BindingPortAlreadyAllocatedException {
+    public void startContainer(String containerId) throws BindingPortAlreadyAllocatedException {
         try {
             dockerClient.startContainerCmd(containerId).exec();
         } catch (InternalServerErrorException e) {
@@ -117,6 +123,15 @@ public class DockerEngine {
             throw e;
         }
     }
+
+    public void stopContainer(String containerId) {
+        dockerClient.stopContainerCmd(containerId).exec();
+    }
+
+    public void removeContainer(String containerId) {
+        dockerClient.removeContainerCmd(containerId).exec();
+    }
+
 
     public void buildImageFromDockerfile(File file) {
         dockerClient.buildImageCmd()
@@ -161,9 +176,4 @@ public class DockerEngine {
             logHandler.accept("Failed to start log streaming for container " + containerId + ": " + e.getMessage());
         }
     }
-
-    public void stopContainer(String containerId) {
-        // Stop container
-    }
-
 }

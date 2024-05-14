@@ -7,7 +7,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
 import nivohub.devinspector.model.ApplicationModel;
-import nivohub.devinspector.model.View;
+import nivohub.devinspector.enums.View;
 
 public class ApplicationBuilder implements Builder<Region> {
 

@@ -1,7 +1,7 @@
 package nivohub.devinspector.interactor;
 
 import nivohub.devinspector.model.ApplicationModel;
-import nivohub.devinspector.model.View;
+import nivohub.devinspector.enums.View;
 
 public class MenuBarInteractor {
     private final ApplicationModel model;

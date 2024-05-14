@@ -9,13 +9,11 @@ import nivohub.devinspector.model.UserModel;
 public class CLInteractor {
 
     private final CLModel model;
-    private final UserModel userModel;
     private Spawn shell;
     private Thread shellThread;
 
     public CLInteractor(CLModel model, UserModel userModel) {
         this.model = model;
-        this.userModel = userModel;
     }
 //todo abstract domain objects to separate package
     public void start() throws Exception {

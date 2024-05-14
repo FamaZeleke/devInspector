@@ -1,4 +1,4 @@
-package nivohub.devinspector.model;
+package nivohub.devinspector.interfaces;
 
 public enum View {
     HOME,
