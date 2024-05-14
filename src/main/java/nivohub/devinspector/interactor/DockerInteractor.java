@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.Optional;
 
 public class DockerInteractor {
     private final DockerModel model;
@@ -45,7 +46,7 @@ public class DockerInteractor {
 
     //Container operations
     public String pullAndRunContainer() throws InterruptedException, BindingPortAlreadyAllocatedException {
-        stopLogStream();
+        stopLogStream(Optional.empty());
         String result;
         result = dockerEngine.createAndRunContainer(model.selectedImageProperty().get(), model.selectedTagProperty().get(), model.formContainerNameProperty().get(), Integer.parseInt(model.formContainerHostPortProperty().get()), Integer.parseInt(model.formContainerPortProperty().get()));
         InspectContainerResponse containerInfo = dockerEngine.getContainerInfo(result);
@@ -56,17 +57,17 @@ public class DockerInteractor {
     }
 
     public void removeContainer(String containerId) {
-            stopLogStream();
+            stopLogStream(Optional.ofNullable(containerId));
             dockerEngine.removeContainer(containerId);
     }
 
     public void startContainer(String containerId) throws BindingPortAlreadyAllocatedException {
-        stopLogStream();
+        stopLogStream(Optional.empty());
         dockerEngine.startContainer(containerId);
     }
 
     public void stopContainer(String containerId) {
-        stopLogStream();
+        stopLogStream(Optional.ofNullable(containerId));
         dockerEngine.stopContainer(containerId);
     }
 
@@ -77,15 +78,17 @@ public class DockerInteractor {
     }
 
     public void streamLogs(String containerId) {
-        addToOutput("Starting log stream");
+        addToOutput("Starting log stream...");
+        model.updateContainerListeningStatus(containerId, true);
         logThread = new Thread(() -> dockerEngine.streamContainerLogs(containerId, logMessage ->
                 Platform.runLater(() -> model.addToOutput(logMessage))));
         logThread.start();
     }
 
-    public void stopLogStream() {
+    public void stopLogStream(Optional<String> containerId) {
         if (logThread != null) {
             logThread.interrupt();
+            containerId.ifPresent(id -> model.updateContainerListeningStatus(id, false));
             addToOutput("Log stream stopped");
         }
     }

@@ -10,6 +10,7 @@ public class DockerContainer {
     private final String exposedPort;
     private final String image;
     private final BooleanProperty running = new SimpleBooleanProperty(false);
+    private final BooleanProperty listing = new SimpleBooleanProperty(false);
 
     public DockerContainer(String containerId, String containerName, String hostPort, String exposedPort, String image, Boolean status) {
         this.containerId = containerId;
@@ -44,7 +45,15 @@ public class DockerContainer {
         return running;
     }
 
+    public BooleanProperty listingProperty() {
+        return listing;
+    }
     public void setRunning(Boolean running) {
         this.running.set(running);
     }
+
+    public void setListing(Boolean listing) {
+        this.listing.set(listing);
+    }
+
 }

@@ -18,6 +18,7 @@ public class DockerModel {
     private final ObjectProperty<File> dockerFile = new SimpleObjectProperty<>();
     private final StringProperty dockerFileText = new SimpleStringProperty();
     private final StringProperty output = new SimpleStringProperty("");
+    private final StringProperty currentContainerId = new SimpleStringProperty();
     private final StringProperty selectedImage = new SimpleStringProperty();
     private final StringProperty selectedTag = new SimpleStringProperty();
     private final StringProperty formContainerName = new SimpleStringProperty("");
@@ -79,6 +80,10 @@ public class DockerModel {
         return output;
     }
 
+    public StringProperty currentContainerIdProperty() {
+        return currentContainerId;
+    }
+
     public StringProperty selectedImageProperty() {
         return selectedImage;
     }
@@ -120,6 +125,16 @@ public class DockerModel {
                 .filter(container -> container.getContainerId().equals(containerId))
                 .findFirst()
                 .ifPresent(container -> container.runningProperty().set(status));
+    }
+
+    public void updateContainerListeningStatus(String containerId, Boolean status) {
+        runningContainers.forEach(container -> {
+            if (container.getContainerId().equals(containerId)) {
+                container.listingProperty().set(status);
+            } else {
+                container.listingProperty().set(false);
+            }
+        });
     }
 
     public void removeContainerFromList(String containerId) {

@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 
 
 public class DockerViewBuilder implements Builder<Region> {
-
     private enum CenterTabs {
         EDITOR,
         OUTPUT
@@ -43,10 +42,11 @@ public class DockerViewBuilder implements Builder<Region> {
     private final Consumer<String> startContainerAction;
     private final Consumer<String> stopContainerAction;
     private final Consumer<String> removeContainerAction;
+    private final Consumer<String> streamContainerAction;
 
     private final ObjectProperty<CenterTabs> currentCenterTab = new SimpleObjectProperty<>(CenterTabs.OUTPUT);
 
-    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction, Runnable disconnectDockerAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable exportFileAction, Consumer<String> startContainerAction, Consumer<String> stopContainerAction, Consumer<String> removeContainerAction) {
+    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction, Runnable disconnectDockerAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable exportFileAction, Consumer<String> startContainerAction, Consumer<String> stopContainerAction, Consumer<String> removeContainerAction, Consumer<String> streamContainerAction) {
         this.model = model;
         this.connectDockerAction = connectDockerAction;
         this.disconnectDockerAction = disconnectDockerAction;
@@ -57,6 +57,7 @@ public class DockerViewBuilder implements Builder<Region> {
         this.startContainerAction = startContainerAction;
         this.stopContainerAction = stopContainerAction;
         this.removeContainerAction = removeContainerAction;
+        this.streamContainerAction = streamContainerAction;
     }
     @Override
     public Region build() {
@@ -155,14 +156,18 @@ public class DockerViewBuilder implements Builder<Region> {
         Node portLabel = styledLabel("Configured Port (Click Me!): ");
         Hyperlink portLink = new Hyperlink("http://localhost:"+ container.getHostPort());
         portLink.setOnAction(e -> openBrowserToContainerBindings.accept(container.getContainerId()));
+        Node streamContainerLogsButton = styledRunnableButton("Stream Logs", () -> streamContainerAction.accept(container.getContainerId()));
         Node startContainerButton = styledRunnableButton("Start", () -> startContainerAction.accept(container.getContainerId()));
         Node stopContainerButton = styledRunnableButton("Stop", () -> stopContainerAction.accept(container.getContainerId()));
+
+        streamContainerLogsButton.disableProperty().bind(container.listingProperty());
         startContainerButton.disableProperty().bind(container.runningProperty());
         stopContainerButton.disableProperty().bind(container.runningProperty().not());
+
         Node removeContainerButton = styledRunnableButton("Remove", () -> removeContainerAction.accept(container.getContainerId()));
 
 
-        return styledTitledPane( container.getContainerName() + " : "+status, List.of(nameLabel, idLabel, imageLabel, statusLabel, portLabel, portLink, startContainerButton, stopContainerButton, removeContainerButton));
+        return styledTitledPane( container.getContainerName() + " : "+status, List.of(nameLabel, idLabel, imageLabel, statusLabel, portLabel, portLink, streamContainerLogsButton, startContainerButton, stopContainerButton, removeContainerButton));
     }
 
     private TabPane createTabPane(Tab firstTab, Tab secondTab ) {
