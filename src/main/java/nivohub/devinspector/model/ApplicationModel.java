@@ -2,6 +2,7 @@ package nivohub.devinspector.model;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import nivohub.devinspector.enums.View;
 
 public class ApplicationModel {
     private final ObjectProperty<View> currentView = new SimpleObjectProperty<>(View.HOME);

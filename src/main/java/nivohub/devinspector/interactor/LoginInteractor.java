@@ -5,7 +5,7 @@ import nivohub.devinspector.exceptions.PasswordException;
 import nivohub.devinspector.model.UserModel;
 
 public class LoginInteractor {
-    private UserModel model;
+    private final UserModel model;
 
     public LoginInteractor(UserModel model) {
         this.model = model;

@@ -3,6 +3,7 @@ package nivohub.devinspector.interactor;
 import javafx.application.Platform;
 import nivohub.devinspector.docker.DockerContainer;
 import nivohub.devinspector.docker.DockerEngine;
+import nivohub.devinspector.exceptions.BindingPortAlreadyAllocatedException;
 import nivohub.devinspector.exceptions.DockerNotRunningException;
 import nivohub.devinspector.model.DockerModel;
 import nivohub.devinspector.model.UserModel;
@@ -26,50 +27,61 @@ public class DockerInteractor {
     }
 
     public void connectDocker() throws DockerNotRunningException {
-        try {
-            dockerEngine.createDockerClient();
-        } catch (Exception e) {
-            throw new DockerNotRunningException(e.getMessage());
-        }
+        dockerEngine.createDockerClient();
     }
 
-    public void updateModelConnection() {
-        model.dockerConnectedProperty().set(true);
+    public void disconnectDocker() throws IOException {
+        dockerEngine.closeDockerClient();
     }
 
-    public String pullAndRunContainer() {
+    public void updateModelConnection(Boolean status) {
+        model.dockerConnectedProperty().set(status);
+    }
+
+    public String pullAndRunContainer() throws InterruptedException, BindingPortAlreadyAllocatedException {
         stopLogStream();
-        DockerContainer result = null;
-        try {
-            result = dockerEngine.createAndRunContainer(model.selectedImageProperty().get(), model.selectedTagProperty().get(), model.formContainerNameProperty().get(), Integer.parseInt(model.formContainerHostPortProperty().get()), Integer.parseInt(model.formContainerPortProperty().get()));
-            streamLogs(result.containerId());
-            addContainerToList(result);
-        } catch (Exception e) {
-            // Interrupt the current thread and inform Controller Task that the task has failed
-            addToOutput(e.getMessage());
-            Thread.currentThread().interrupt();
-        }
+        DockerContainer result;
+        result = dockerEngine.createAndRunContainer(model.selectedImageProperty().get(), model.selectedTagProperty().get(), model.formContainerNameProperty().get(), Integer.parseInt(model.formContainerHostPortProperty().get()), Integer.parseInt(model.formContainerPortProperty().get()));
+        streamLogs(result.getContainerId());
+        addContainerToList(result);
+        return result.getContainerId();
+    }
 
-        return result.containerId();
+    public void removeContainer(String containerId) {
+            stopLogStream();
+            dockerEngine.removeContainer(containerId);
+    }
+
+    public void startContainer(String containerId) throws BindingPortAlreadyAllocatedException {
+        stopLogStream();
+        dockerEngine.startContainer(containerId);
+    }
+
+    public void stopContainer(String containerId) {
+        stopLogStream();
+        dockerEngine.stopContainer(containerId);
     }
 
     public void addToOutput (String message) {
-        model.addToOutput(message);
+        model.addToOutput(" \n"+message);
     }
 
     public void addContainerToList(DockerContainer container) {
         model.addContainerToList(container);
     }
 
+    public void removeContainerFromList(String containerId) {
+        model.removeContainerFromList(containerId);
+    }
+
+    public void updateContainerStatus(String containerId, Boolean status) {
+        model.updateContainerStatus(containerId, status);
+    }
+
     public void streamLogs(String containerId) {
         addToOutput("Starting log stream");
-        logThread = new Thread(() -> {
-            dockerEngine.streamContainerLogs(containerId, logMessage -> {
-                Platform.runLater(() -> {
-                    model.addToOutput(logMessage);
-                });
-            });
-        });
+        logThread = new Thread(() -> dockerEngine.streamContainerLogs(containerId, logMessage ->
+            Platform.runLater(() -> model.addToOutput(logMessage))));
         logThread.start();
     }
 
@@ -89,9 +101,9 @@ public class DockerInteractor {
 
     private String getPortsForContainer(String containerId) {
         return this.model.getRunningContainers().stream()
-                .filter(container -> container.containerId().equals(containerId))
+                .filter(container -> container.getContainerId().equals(containerId))
                 .findFirst()
-                .map(DockerContainer::hostPort)
+                .map(DockerContainer::getHostPort)
                 .map(Object::toString)
                 .orElse(null);
     }

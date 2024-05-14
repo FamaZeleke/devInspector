@@ -35,20 +35,28 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private final DockerModel model;
     private final Runnable connectDockerAction;
+    private final Runnable disconnectDockerAction;
     private final Runnable pullAndRunContainerAction;
     private final Consumer<File> uploadFileAction;
     private final Consumer<String> openBrowserToContainerBindings;
     private final Runnable exportFileAction;
+    private final Consumer<String> startContainerAction;
+    private final Consumer<String> stopContainerAction;
+    private final Consumer<String> removeContainerAction;
 
     private final ObjectProperty<CenterTabs> currentCenterTab = new SimpleObjectProperty<>(CenterTabs.OUTPUT);
 
-    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable exportFileAction) {
+    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction, Runnable disconnectDockerAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable exportFileAction, Consumer<String> startContainerAction, Consumer<String> stopContainerAction, Consumer<String> removeContainerAction) {
         this.model = model;
         this.connectDockerAction = connectDockerAction;
+        this.disconnectDockerAction = disconnectDockerAction;
         this.openBrowserToContainerBindings = openBrowserToContainerBindings;
         this.pullAndRunContainerAction = pullAndRunContainerAction;
         this.uploadFileAction = uploadFileAction;
         this.exportFileAction = exportFileAction;
+        this.startContainerAction = startContainerAction;
+        this.stopContainerAction = stopContainerAction;
+        this.removeContainerAction = removeContainerAction;
     }
     @Override
     public Region build() {
@@ -139,14 +147,22 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private TitledPane createContainerDetails(DockerContainer container) {
 
-        Node idLabel = styledLabel("Container ID: "+ container.containerId());
-        Node nameLabel = styledLabel("Container Name: " + container.containerName());
-        Node imageLabel = styledLabel("Container Image: " + container.image());
-        Node statusLabel = styledLabel("Container Status: " + container.status());
+        Node idLabel = styledLabel("Container ID: "+ container.getContainerId());
+        Node nameLabel = styledLabel("Container Name: " + container.getContainerName());
+        Node imageLabel = styledLabel("Container Image: " + container.getImage());
+        Node statusLabel = styledLabel("Container Status: " + container.getRunning());
         Node portLabel = styledLabel("Configured Port (Click Me!): ");
-        Hyperlink portLink = new Hyperlink("Http://localhost:"+ container.hostPort());
-        portLink.setOnAction(e -> openBrowserToContainerBindings.accept(container.containerId()));
-        return styledTitledPane( container.containerName() + " : "+container.status(), List.of(nameLabel, idLabel, imageLabel, statusLabel, portLabel, portLink));
+        Hyperlink portLink = new Hyperlink("http://localhost:"+ container.getHostPort());
+        portLink.setOnAction(e -> openBrowserToContainerBindings.accept(container.getContainerId()));
+        Node startContainerButton = styledRunnableButton("Start", () -> startContainerAction.accept(container.getContainerId()));
+        Node stopContainerButton = styledRunnableButton("Stop", () -> stopContainerAction.accept(container.getContainerId()));
+        //replace with boolean binding
+        startContainerButton.disableProperty().bind(container.runningProperty());
+        stopContainerButton.disableProperty().bind(container.runningProperty().not());
+        Node removeContainerButton = styledRunnableButton("Remove", () -> removeContainerAction.accept(container.getContainerId()));
+
+        String status = container.getRunning().get() ? "Running" : "Stopped";
+        return styledTitledPane( container.getContainerName() + " : "+status, List.of(nameLabel, idLabel, imageLabel, statusLabel, portLabel, portLink, startContainerButton, stopContainerButton, removeContainerButton));
     }
 
     private TabPane createTabPane(Tab firstTab, Tab secondTab ) {
@@ -164,8 +180,10 @@ public class DockerViewBuilder implements Builder<Region> {
                 .then(javafx.scene.paint.Color.GREEN)
                 .otherwise(javafx.scene.paint.Color.RED));
         Node connectDocker = styledRunnableButton("Connect Docker", connectDockerAction);
+        Node disconnectDocker = styledRunnableButton("Disconnect Docker", disconnectDockerAction);
         connectDocker.disableProperty().bind(model.dockerConnectedProperty());
-        return styledVbox(List.of(label, connectDocker), Pos.CENTER);
+        disconnectDocker.disableProperty().bind(model.dockerConnectedProperty().not());
+        return styledVbox(List.of(label, connectDocker, disconnectDocker), Pos.BOTTOM_CENTER);
     }
 
     private Region createRegionPane(Node child, Insets insets) {
@@ -232,7 +250,7 @@ public class DockerViewBuilder implements Builder<Region> {
     private void handleRemovedContainers(ObservableList<TitledPane> titledPanes, ListChangeListener.Change<? extends DockerContainer> c) {
         if (c.wasRemoved()) {
             for (DockerContainer container : c.getRemoved()) {
-                Platform.runLater(() -> titledPanes.removeIf(pane -> pane.getText().equals(container.containerName())));
+                Platform.runLater(() -> titledPanes.removeIf(pane -> pane.getText().contains(container.getContainerName())));
             }
         }
     }
@@ -357,8 +375,7 @@ public class DockerViewBuilder implements Builder<Region> {
     }
 
     private Node styledLabel(String label) {
-        Label results = new Label(label);
-        return results;
+        return new Label(label);
     }
 
 }

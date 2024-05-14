@@ -114,4 +114,15 @@ public class DockerModel {
     public void addContainerToList(DockerContainer container) {
         runningContainers.add(container);
     }
+
+    public void updateContainerStatus(String containerId, Boolean status) {
+        runningContainers.stream()
+                .filter(container -> container.getContainerId().equals(containerId))
+                .findFirst()
+                .ifPresent(container -> container.runningProperty().set(status));
+    }
+
+    public void removeContainerFromList(String containerId) {
+        runningContainers.removeIf(container -> container.getContainerId().equals(containerId));
+    }
 }
