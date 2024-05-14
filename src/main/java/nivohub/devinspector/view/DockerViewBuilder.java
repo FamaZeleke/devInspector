@@ -2,6 +2,7 @@ package nivohub.devinspector.view;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -151,8 +152,15 @@ public class DockerViewBuilder implements Builder<Region> {
         Node idLabel = styledLabel("Container ID: "+ container.getContainerId());
         Node nameLabel = styledLabel("Container Name: " + container.getContainerName());
         Node imageLabel = styledLabel("Container Image: " + container.getImage());
-        String status = container.getRunning().get() ? "Running" : "Stopped";
-        Node statusLabel = styledLabel("Container Status: " + status);
+
+        StringBinding statusBinding = Bindings.createStringBinding(() -> container.runningProperty().get() ? "Running" : "Stopped", container.runningProperty());
+        StringBinding boundTitle = Bindings.createStringBinding(() -> {
+            String status = container.runningProperty().get() ? "Running" : "Stopped";
+            return container.getContainerName()+" : " + status;
+        }, container.runningProperty());
+
+        //TODO Clean up
+
         Node portLabel = styledLabel("Configured Port (Click Me!): ");
         Hyperlink portLink = new Hyperlink("http://localhost:"+ container.getHostPort());
         portLink.setOnAction(e -> openBrowserToContainerBindings.accept(container.getContainerId()));
@@ -160,14 +168,20 @@ public class DockerViewBuilder implements Builder<Region> {
         Node startContainerButton = styledRunnableButton("Start", () -> startContainerAction.accept(container.getContainerId()));
         Node stopContainerButton = styledRunnableButton("Stop", () -> stopContainerAction.accept(container.getContainerId()));
 
-        streamContainerLogsButton.disableProperty().bind(container.listingProperty());
+        // Disable stream logs button if container is already streaming logs
+        streamContainerLogsButton.disableProperty().bind(container.listeningProperty());
+
         startContainerButton.disableProperty().bind(container.runningProperty());
         stopContainerButton.disableProperty().bind(container.runningProperty().not());
 
+        // Disable remove button if container is running
         Node removeContainerButton = styledRunnableButton("Remove", () -> removeContainerAction.accept(container.getContainerId()));
+        removeContainerButton.disableProperty().bind(container.runningProperty());
 
+        Label status = new Label();
+        status.textProperty().bind(statusBinding);
 
-        return styledTitledPane( container.getContainerName() + " : "+status, List.of(nameLabel, idLabel, imageLabel, statusLabel, portLabel, portLink, streamContainerLogsButton, startContainerButton, stopContainerButton, removeContainerButton));
+        return styledTitledPane(boundTitle, List.of(nameLabel, idLabel, imageLabel, status, portLabel, portLink, streamContainerLogsButton, startContainerButton, stopContainerButton, removeContainerButton));
     }
 
     private TabPane createTabPane(Tab firstTab, Tab secondTab ) {
@@ -175,6 +189,8 @@ public class DockerViewBuilder implements Builder<Region> {
         results.getTabs().addAll(firstTab, secondTab);
         return results;
     }
+
+    // Create new output per container -> change stream log button to generate output pane
 
     private Node createBox() {
         Label label = (Label) styledLabel("Docker is not running");
@@ -310,9 +326,9 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private TitledPane styledTitledPane(String title, List<Node> content) {
+    private TitledPane styledTitledPane(StringBinding title, List<Node> content) {
         TitledPane results = new TitledPane();
-        results.setText(title);
+        results.textProperty().bind(title);
         results.setContent(styledVbox(content, Pos.TOP_LEFT));
         return results;
     }
