@@ -17,8 +17,7 @@ import java.util.Optional;
 public class DockerController extends BaseController implements DockerInterface {
     private final DockerInteractor interactor;
 
-    public DockerController(UserModel userModel) {
-        DockerModel model = new DockerModel();
+    public DockerController(UserModel userModel, DockerModel model) {
         interactor = new DockerInteractor(model, userModel);
         viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::connectDocker, this::disconnectDocker, this::openBrowserToContainerBindings, this::uploadFileEvent, this::exportFileAction, this::startContainer, this::stopContainer, this::removeContainer, this::listenToContainerLogs);
     }
@@ -116,7 +115,7 @@ public class DockerController extends BaseController implements DockerInterface 
         task.run();
     }
 
-    private void startContainer(String containerId) {
+    public void startContainer(String containerId) {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws BindingPortAlreadyAllocatedException {
@@ -134,7 +133,7 @@ public class DockerController extends BaseController implements DockerInterface 
         task.run();
     }
 
-    private void stopContainer(String containerId) {
+    public void stopContainer(String containerId) {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
@@ -151,7 +150,7 @@ public class DockerController extends BaseController implements DockerInterface 
         task.run();
     }
 
-    private void removeContainer(String containerId) {
+    public void removeContainer(String containerId) {
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
