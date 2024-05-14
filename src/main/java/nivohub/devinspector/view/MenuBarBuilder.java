@@ -1,8 +1,10 @@
 package nivohub.devinspector.view;
 
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.util.Builder;
 import nivohub.devinspector.enums.View;
+import nivohub.devinspector.interfaces.ApplicationInterface;
 import nivohub.devinspector.interfaces.DockerInterface;
 
 import java.util.function.Consumer;
@@ -11,10 +13,12 @@ public class MenuBarBuilder implements Builder<MenuBar> {
 
         private final Consumer<View> eventHandler;
         private final DockerInterface dockerInterface;
+        private final ApplicationInterface applicationInterface;
 
-        public MenuBarBuilder(Consumer<View> eventHandler, DockerInterface dockerInterface) {
+        public MenuBarBuilder(Consumer<View> eventHandler, DockerInterface dockerInterface, ApplicationInterface applicationInterface) {
                 this.eventHandler = eventHandler;
                 this.dockerInterface = dockerInterface;
+                this.applicationInterface = applicationInterface;
         }
 
 
@@ -34,8 +38,7 @@ public class MenuBarBuilder implements Builder<MenuBar> {
                 MenuItem docker = new MenuItem("Docker");
                 docker.setOnAction(event -> eventHandler.accept(View.DOCKER));
 
-                Button exit = new Button("Exit");
-                exit.setOnAction(event -> System.exit(0));
+                Node exit = styledRunnableButton("Exit", applicationInterface::exitApplication);
                 CustomMenuItem exitItem = new CustomMenuItem(exit);
 
                 mainMenu.getItems().addAll(home, docker, cliTool, exitItem);
@@ -45,18 +48,23 @@ public class MenuBarBuilder implements Builder<MenuBar> {
         private Menu dockerMenu() {
                 Menu dockerMenu = new Menu("Docker Menu");
 
-                Button connectDockerButton = new Button("Connect");
-                connectDockerButton.setOnAction(e -> dockerInterface.connectDocker());
+                Node connectDockerButton = styledRunnableButton("Connect", dockerInterface::connectDocker);
                 CustomMenuItem connectDocker = new CustomMenuItem(connectDockerButton);
                 connectDocker.setContent(connectDockerButton);
 
-                Button disconnectDockerButton = new Button("Disconnect");
-                disconnectDockerButton.setOnAction(e -> dockerInterface.disconnectDocker());
+                Node disconnectDockerButton = styledRunnableButton("Disconnect", dockerInterface::disconnectDocker);
                 CustomMenuItem disconnectDocker = new CustomMenuItem(disconnectDockerButton);
                 disconnectDocker.setContent(disconnectDockerButton);
 
                 dockerMenu.getItems().addAll(connectDocker, disconnectDocker);
                 return dockerMenu;
+        }
+
+        private Node styledRunnableButton(String text, Runnable runnable) {
+                Button button = new Button(text);
+                button.setOnAction(e -> runnable.run());
+                button.setPrefWidth(100);
+                return button;
         }
 
 

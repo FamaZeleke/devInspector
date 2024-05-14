@@ -3,6 +3,7 @@ package nivohub.devinspector.controller;
 import javafx.scene.control.MenuBar;
 import javafx.util.Builder;
 import nivohub.devinspector.interactor.MenuBarInteractor;
+import nivohub.devinspector.interfaces.ApplicationInterface;
 import nivohub.devinspector.interfaces.DockerInterface;
 import nivohub.devinspector.model.ApplicationModel;
 import nivohub.devinspector.enums.View;
@@ -13,9 +14,9 @@ public class MenuBarController {
     private final Builder<MenuBar> viewBuilder;
     private final MenuBarInteractor interactor;
 
-    public MenuBarController(ApplicationModel applicationModel, DockerInterface dockerInterface) {
+    public MenuBarController(ApplicationModel applicationModel, DockerInterface dockerInterface, ApplicationInterface applicationInterface) {
         interactor = new MenuBarInteractor(applicationModel);
-        viewBuilder = new MenuBarBuilder(this::handleView, dockerInterface);
+        viewBuilder = new MenuBarBuilder(this::handleView, dockerInterface, applicationInterface);
     }
 
     private void handleView(View view) {
