@@ -1,30 +1,27 @@
 package nivohub.devinspector;
 
 import atlantafx.base.theme.PrimerDark;
-import atlantafx.base.theme.PrimerLight;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import nivohub.devinspector.controller.ApplicationController;
 import nivohub.devinspector.controller.LoginController;
+import nivohub.devinspector.interfaces.StageManager;
 import nivohub.devinspector.model.UserModel;
 
 public class AppRoot extends Application implements StageManager {
 
     private Stage primaryStage;
     private ApplicationController applicationController;
-    private UserModel userModel;
 
     public static void main(String[] args) {
         launch(args);
-
-
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
-        this.userModel = new UserModel();
+        UserModel userModel = new UserModel();
         String osArch = System.getProperty("os.arch");
         String osName = System.getProperty("os.name").toLowerCase();
         String platform = osName.contains("mac") ? "mac" : "windows";
@@ -39,7 +36,7 @@ public class AppRoot extends Application implements StageManager {
     }
 
     @Override
-    public void switchScene() {
+    public void switchView() {
         primaryStage.setScene(new Scene(applicationController.getView()));
         primaryStage.setWidth(1024);
         primaryStage.setHeight(768);

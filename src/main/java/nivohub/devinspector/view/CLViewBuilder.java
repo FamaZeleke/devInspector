@@ -12,10 +12,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Builder;
+import nivohub.devinspector.enums.TaskType;
 import nivohub.devinspector.model.CLModel;
 import java.util.function.Consumer;
-
-import static nivohub.devinspector.controller.CLController.*;
 
 public class CLViewBuilder implements Builder<Region> {
 

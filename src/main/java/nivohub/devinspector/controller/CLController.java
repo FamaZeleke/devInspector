@@ -1,6 +1,7 @@
 package nivohub.devinspector.controller;
 
 import javafx.concurrent.Task;
+import nivohub.devinspector.enums.TaskType;
 import nivohub.devinspector.exceptions.InvalidCommandException;
 import nivohub.devinspector.interactor.CLInteractor;
 import nivohub.devinspector.model.CLModel;
@@ -88,11 +89,6 @@ public class CLController extends BaseController {
         new Thread(executeCommand).start();
     }
 
-    public enum TaskType {
-        START,
-        CLEAR,
-        STOP
-    }
 }
 
 
