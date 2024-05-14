@@ -128,6 +128,7 @@ public class DockerController extends BaseController implements DockerInterface 
         task.setOnSucceeded(e -> {
             interactor.addToOutput("Container started");
             interactor.updateContainerStatus(containerId, true);
+            interactor.streamLogs(containerId);
         });
         task.setOnFailed(e -> interactor.addToOutput("Failed to start container: "+e.getSource().getException().getMessage()));
         task.run();
