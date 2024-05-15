@@ -158,21 +158,24 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private TitledPane createContainerDetails(DockerContainerObject container) {
 
+        // Container details
         Node idLabel = styledLabel("Container ID: "+ container.getContainerId());
         Node nameLabel = styledLabel("Container Name: " + container.getContainerName());
         Node imageLabel = styledLabel("Container Image: " + container.getImage());
 
+        //Bound container status
         StringBinding statusBinding = Bindings.createStringBinding(() -> container.runningProperty().get() ? "Running" : "Stopped", container.runningProperty());
         StringBinding boundTitle = Bindings.createStringBinding(() -> {
             String status = container.runningProperty().get() ? "Running" : "Stopped";
             return container.getContainerName()+" : " + status;
         }, container.runningProperty());
 
-        //TODO Clean up
-
+        // Hyperlink to open browser to container bindings
         Node portLabel = styledLabel("Configured Port (Click Me!): ");
         Hyperlink portLink = new Hyperlink("http://localhost:"+ container.getHostPort());
         portLink.setOnAction(e -> openBrowserToContainerBindings.accept(container.getContainerId()));
+
+        // Buttons
         Node streamContainerLogsButton = styledRunnableButton("Stream Logs", () -> streamContainerAction.accept(container.getContainerId()));
         Node startContainerButton = styledRunnableButton("Start", () -> startContainerAction.accept(container.getContainerId()));
         Node stopContainerButton = styledRunnableButton("Stop", () -> stopContainerAction.accept(container.getContainerId()));
