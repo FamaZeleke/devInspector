@@ -22,11 +22,14 @@ public class DockerModel {
     private final StringProperty selectedImage = new SimpleStringProperty();
     private final StringProperty selectedTag = new SimpleStringProperty();
     private final StringProperty formContainerName = new SimpleStringProperty("");
-    private final StringProperty dockerFileContainerName = new SimpleStringProperty("");
     private final StringProperty formContainerPort = new SimpleStringProperty("");
     private final StringProperty formContainerHostPort = new SimpleStringProperty("");
+    private final StringProperty dockerfileContainerName = new SimpleStringProperty("");
+    private final StringProperty dockerfileHostPort = new SimpleStringProperty("");
+    private final StringProperty dockerfileContainerPort = new SimpleStringProperty("");
     private final BooleanBinding imageSelected;
     private final BooleanProperty dockerConnected = new SimpleBooleanProperty(false);
+    private final BooleanProperty threadBuilding = new SimpleBooleanProperty(false);
 
     public DockerModel() {
         this.dockerImages = FXCollections.observableArrayList(
@@ -60,6 +63,7 @@ public class DockerModel {
     }
 
     private void populateDockerImageNames() {
+        dockerImageNames.clear(); // Clear the list before adding new items from the dockerImages list
         dockerImageNames.addAll(dockerImages.stream()
                 .map(DockerImageObject::getImageName)
                 .filter(name -> name != null && !name.isEmpty())
@@ -104,8 +108,16 @@ public class DockerModel {
         return dockerFile;
     }
 
-    public StringProperty dockerFileContainerNameProperty() {
-        return dockerFileContainerName;
+    public StringProperty dockerfileContainerNameProperty() {
+        return dockerfileContainerName;
+    }
+
+    public StringProperty dockerfileHostPortProperty() {
+        return dockerfileHostPort;
+    }
+
+    public StringProperty dockerfileContainerPortProperty() {
+        return dockerfileContainerPort;
     }
 
     public StringProperty dockerFileTextProperty() {
@@ -138,6 +150,10 @@ public class DockerModel {
 
     public BooleanProperty dockerConnectedProperty() {
         return dockerConnected;
+    }
+
+    public BooleanProperty threadBuildingProperty() {
+        return threadBuilding;
     }
 
     public BooleanBinding imageSelectedProperty() {
