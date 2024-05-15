@@ -19,7 +19,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Builder;
-import nivohub.devinspector.docker.DockerContainer;
+import nivohub.devinspector.docker.DockerContainerObject;
 import nivohub.devinspector.model.DockerModel;
 
 import java.io.File;
@@ -147,7 +147,7 @@ public class DockerViewBuilder implements Builder<Region> {
         return results;
     }
 
-    private TitledPane createContainerDetails(DockerContainer container) {
+    private TitledPane createContainerDetails(DockerContainerObject container) {
 
         Node idLabel = styledLabel("Container ID: "+ container.getContainerId());
         Node nameLabel = styledLabel("Container Name: " + container.getContainerName());
@@ -242,14 +242,14 @@ public class DockerViewBuilder implements Builder<Region> {
 
     //Events and Helpers
     private void addExistingContainers(ObservableList<TitledPane> titledPanes) {
-        for (DockerContainer container : model.getRunningContainers()) {
+        for (DockerContainerObject container : model.getDockerContainers()) {
             TitledPane pane = createContainerDetails(container);
             titledPanes.add(pane);
         }
     }
 
     private void addContainerChangeListener(ObservableList<TitledPane> titledPanes) {
-        model.getRunningContainers().addListener((ListChangeListener.Change<? extends DockerContainer> c) -> {
+        model.getDockerContainers().addListener((ListChangeListener.Change<? extends DockerContainerObject> c) -> {
             while (c.next()) {
                 handleAddedContainers(titledPanes, c);
                 handleRemovedContainers(titledPanes, c);
@@ -257,9 +257,9 @@ public class DockerViewBuilder implements Builder<Region> {
         });
     }
 
-    private void handleAddedContainers(ObservableList<TitledPane> titledPanes, ListChangeListener.Change<? extends DockerContainer> c) {
+    private void handleAddedContainers(ObservableList<TitledPane> titledPanes, ListChangeListener.Change<? extends DockerContainerObject> c) {
         if (c.wasAdded()) {
-            for (DockerContainer container : c.getAddedSubList()) {
+            for (DockerContainerObject container : c.getAddedSubList()) {
                 Platform.runLater(() -> {
                     TitledPane pane = createContainerDetails(container);
                     titledPanes.add(pane);
@@ -268,9 +268,9 @@ public class DockerViewBuilder implements Builder<Region> {
         }
     }
 
-    private void handleRemovedContainers(ObservableList<TitledPane> titledPanes, ListChangeListener.Change<? extends DockerContainer> c) {
+    private void handleRemovedContainers(ObservableList<TitledPane> titledPanes, ListChangeListener.Change<? extends DockerContainerObject> c) {
         if (c.wasRemoved()) {
-            for (DockerContainer container : c.getRemoved()) {
+            for (DockerContainerObject container : c.getRemoved()) {
                 Platform.runLater(() -> titledPanes.removeIf(pane -> pane.getText().contains(container.getContainerName())));
             }
         }
