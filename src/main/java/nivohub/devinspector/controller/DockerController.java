@@ -15,17 +15,43 @@ import java.io.IOException;
 
 public class DockerController extends BaseController implements DockerInterface {
     private final DockerInteractor interactor;
+    private Thread thread;
 
     public DockerController(UserModel userModel, DockerModel model) {
         interactor = new DockerInteractor(model, userModel);
-        viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::openBrowserToContainerBindings, this::uploadFileEvent, this::exportFileAction, this::startContainer, this::stopContainer, this::removeContainer, this::listenToContainerLogs);
+        viewBuilder = new DockerViewBuilder(model,
+                this::pullAndRunContainer,
+                this::buildAndRunContainerFromDockerfile,
+                this::openBrowserToContainerBindings,
+                this::uploadFileEvent,
+                this::exportFileAction,
+                this::saveFileAction,
+                this::startContainer,
+                this::stopContainer,
+                this::removeContainer,
+                this::listenToContainerLogs);
+    }
+
+    private void saveFileAction() {
+        interactor.addToOutput("Saving file...");
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws IOException {
+                interactor.saveFile();
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> interactor.addToOutput("File saved!"));
+        task.setOnFailed(e -> interactor.addToOutput("Failed to save file: "+e.getSource().getException().getMessage()));
+        // Running as Task as this is unlikely to be a long-running task
+        task.run();
     }
 
     private void exportFileAction() {
+        interactor.addToOutput("Exporting file...");
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws FileNotFoundException {
-                interactor.addToOutput("Exporting file...");
                 interactor.exportFile();
                 return null;
             }
@@ -37,10 +63,10 @@ public class DockerController extends BaseController implements DockerInterface 
     }
 
     private void uploadFileEvent(File file) {
+        interactor.addToOutput("Uploading file...");
         Task<String> task = new Task<>() {
             @Override
             protected String call() throws IOException {
-                interactor.addToOutput("Uploading file...");
                 return interactor.uploadDockerFile(file);
             }
         };
@@ -50,10 +76,10 @@ public class DockerController extends BaseController implements DockerInterface 
     }
 
     private void openBrowserToContainerBindings(String containerId) {
+        interactor.addToOutput("Opening browser to container bindings...");
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws Exception {
-                interactor.addToOutput("Opening browser to container bindings...");
                 interactor.openBrowserToPort(containerId);
                 return null;
             }
@@ -64,10 +90,10 @@ public class DockerController extends BaseController implements DockerInterface 
     }
 
     private void listenToContainerLogs(String containerId) {
+        interactor.addToOutput("Starting log stream...");
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
-                interactor.addToOutput("Starting log stream...");
                 interactor.stopLogStream(containerId);
                 interactor.streamLogs(containerId);
                 return null;
@@ -79,24 +105,53 @@ public class DockerController extends BaseController implements DockerInterface 
     }
 
     private void pullAndRunContainer() {
+        interactor.updateModelThreadBuilding(true);
+        interactor.addToOutput("Pulling and running container...");
         Task<String> task = new Task<>() {
             @Override
             protected String call() throws InterruptedException, BindingPortAlreadyAllocatedException {
-                interactor.addToOutput("Pulling and running container...");
                 return interactor.pullAndRunContainer();
             }
         };
-        task.setOnSucceeded(e -> interactor.addToOutput("Container created with id: " + e.getSource().getValue()));
-        task.setOnFailed(e -> interactor.addToOutput("Failed to pull and run container: "+e.getSource().getException().getMessage()));
-        new Thread(task).start();
+        task.setOnSucceeded(e -> {
+            interactor.addToOutput("Container created with id: " + e.getSource().getValue());
+            interactor.updateModelThreadBuilding(false);
+        });
+        task.setOnFailed(e -> {
+            interactor.addToOutput("Failed to pull and run container: " + e.getSource().getException().getMessage());
+            interactor.updateModelThreadBuilding(false);
+        });
+        thread = new Thread(task);
+        thread.start();
+    }
+
+    private void buildAndRunContainerFromDockerfile() {
+        interactor.updateModelThreadBuilding(true);
+        interactor.addToOutput("Building and running container from Dockerfile...");
+        Task<String> task = new Task<>() {
+            @Override
+            protected String call() throws BindingPortAlreadyAllocatedException {
+                return interactor.buildAndRunContainerFromDockerfile();
+            }
+        };
+        task.setOnSucceeded(e -> {
+            interactor.addToOutput("Container created with id: " + e.getSource().getValue());
+            interactor.updateModelThreadBuilding(false);
+        });
+        task.setOnFailed(e -> {
+            interactor.addToOutput("Failed to build and run container from Dockerfile: " + e.getSource().getException().getMessage());
+            interactor.updateModelThreadBuilding(false);
+        });
+        thread = new Thread(task);
+        thread.start();
     }
 
     @Override
     public void connectDocker() {
+        interactor.addToOutput("Connecting to Docker...");
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws DockerNotRunningException {
-                interactor.addToOutput("Connecting to Docker...");
                 interactor.connectDocker();
                 return null;
             }
@@ -113,10 +168,10 @@ public class DockerController extends BaseController implements DockerInterface 
 
     @Override
     public void disconnectDocker() {
+        interactor.addToOutput("Disconnecting from Docker...");
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws IOException {
-                interactor.addToOutput("Disconnecting from Docker...");
                 interactor.disconnectDocker();
                 return null;
             }
@@ -131,10 +186,10 @@ public class DockerController extends BaseController implements DockerInterface 
 
     @Override
     public void startContainer(String containerId) {
+        interactor.addToOutput("Starting container...");
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() throws BindingPortAlreadyAllocatedException {
-                interactor.addToOutput("Starting container...");
                 interactor.startContainer(containerId);
                 return null;
             }
@@ -150,10 +205,10 @@ public class DockerController extends BaseController implements DockerInterface 
 
     @Override
     public void stopContainer(String containerId) {
+        interactor.addToOutput("Stopping container...");
         Task<Void> task = new Task<>() {
             @Override
             protected Void call() {
-                interactor.addToOutput("Stopping container...");
                 interactor.stopContainer(containerId);
                 return null;
             }
@@ -183,4 +238,10 @@ public class DockerController extends BaseController implements DockerInterface 
         task.run();
     }
 
+    @Override
+    public void stopThread() {
+        thread.interrupt();
+        interactor.addToOutput("Thread stopped");
+        interactor.updateModelThreadBuilding(false);
+    }
 }

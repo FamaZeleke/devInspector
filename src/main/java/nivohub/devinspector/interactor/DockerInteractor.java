@@ -43,10 +43,6 @@ public class DockerInteractor {
         dockerEngine.closeDockerClient();
     }
 
-    public void updateModelConnection(Boolean status) {
-        model.dockerConnectedProperty().set(status);
-    }
-
     //Container operations
     public String pullAndRunContainer() throws InterruptedException, BindingPortAlreadyAllocatedException {
         stopLogStream(null);
@@ -62,7 +58,7 @@ public class DockerInteractor {
     public String buildAndRunContainerFromDockerfile() throws BindingPortAlreadyAllocatedException {
         stopLogStream(null);
         String result;
-        result = dockerEngine.buildAndRunContainerFromDockerfile(model.dockerFileProperty().get(), model.formContainerNameProperty().get(), Integer.parseInt(model.formContainerHostPortProperty().get()), Integer.parseInt(model.formContainerPortProperty().get()));
+        result = dockerEngine.buildAndRunContainerFromDockerfile(model.dockerFileProperty().get(), model.dockerfileContainerNameProperty().get(), Integer.parseInt(model.dockerfileHostPortProperty().get()), Integer.parseInt(model.dockerfileContainerPortProperty().get()));
         InspectContainerResponse containerInfo = dockerEngine.getContainerInfo(result);
         DockerContainerObject containerObject = createContainerObject(containerInfo, result);
         addContainerToList(containerObject);
@@ -111,7 +107,7 @@ public class DockerInteractor {
 
     //Model operations
     public void addToOutput(String message) {
-        model.addToOutput(" \n" + message);
+        model.addToOutput(message);
     }
 
     public void addContainerToList(DockerContainerObject container) {
@@ -124,6 +120,14 @@ public class DockerInteractor {
 
     public void updateContainerStatus(String containerId, Boolean status) {
         model.updateContainerStatus(containerId, status);
+    }
+
+    public void updateModelConnection(Boolean status) {
+        model.dockerConnectedProperty().set(status);
+    }
+
+    public void updateModelThreadBuilding(Boolean status) {
+        model.threadBuildingProperty().set(status);
     }
 
     private String getPortsForContainer(String containerId) {
@@ -144,6 +148,13 @@ public class DockerInteractor {
 
     public void exportFile() throws FileNotFoundException {
         PrintWriter writer = new PrintWriter(model.dockerFileProperty().get());
+        writer.write(model.dockerFileTextProperty().get());
+        writer.close();
+    }
+
+    public void saveFile() throws FileNotFoundException {
+        File file = model.dockerFileProperty().get();
+        PrintWriter writer = new PrintWriter(file);
         writer.write(model.dockerFileTextProperty().get());
         writer.close();
     }
@@ -186,7 +197,9 @@ public class DockerInteractor {
         dockerEngine.listImages().forEach(image -> {
             InspectImageResponse imageInfo = dockerEngine.getImageInfo(image.getId());
             DockerImageObject imageObject = createImageObject(imageInfo);
-            model.addDockerImageTags(imageObject);
+            model.addDockerImage(imageObject);
         });
     }
+
+
 }

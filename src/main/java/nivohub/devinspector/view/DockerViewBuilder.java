@@ -17,6 +17,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.util.Builder;
 import nivohub.devinspector.docker.DockerContainerObject;
@@ -28,28 +30,32 @@ import java.util.function.Consumer;
 
 
 public class DockerViewBuilder implements Builder<Region> {
-    private enum CenterTabs {
-        EDITOR,
-        OUTPUT
-    }
-
+    private final Runnable dockerFileBuildAction;
     private final DockerModel model;
     private final Runnable pullAndRunContainerAction;
+    private final Runnable saveFileAction;
+    private final Runnable exportFileAction;
     private final Consumer<File> uploadFileAction;
     private final Consumer<String> openBrowserToContainerBindings;
-    private final Runnable exportFileAction;
     private final Consumer<String> startContainerAction;
     private final Consumer<String> stopContainerAction;
     private final Consumer<String> removeContainerAction;
     private final Consumer<String> streamContainerAction;
 
+    private enum CenterTabs {
+        EDITOR,
+        OUTPUT
+    }
+
     private final ObjectProperty<CenterTabs> currentCenterTab = new SimpleObjectProperty<>(CenterTabs.OUTPUT);
 
-    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable exportFileAction, Consumer<String> startContainerAction, Consumer<String> stopContainerAction, Consumer<String> removeContainerAction, Consumer<String> streamContainerAction) {
+    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable dockerFileBuildAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable saveFileAction, Runnable exportFileAction, Consumer<String> startContainerAction, Consumer<String> stopContainerAction, Consumer<String> removeContainerAction, Consumer<String> streamContainerAction) {
         this.model = model;
         this.openBrowserToContainerBindings = openBrowserToContainerBindings;
         this.pullAndRunContainerAction = pullAndRunContainerAction;
+        this.dockerFileBuildAction = dockerFileBuildAction;
         this.uploadFileAction = uploadFileAction;
+        this.saveFileAction = saveFileAction;
         this.exportFileAction = exportFileAction;
         this.startContainerAction = startContainerAction;
         this.stopContainerAction = stopContainerAction;
@@ -88,11 +94,19 @@ public class DockerViewBuilder implements Builder<Region> {
     private Tab createDockerfileTab() {
         Tab results = new Tab("Dockerfile");
         Node uploadButton = styledRunnableButton("Upload Dockerfile", () -> showHandleFileUploadDialog(uploadFileAction));
+        Node saveButton = styledRunnableButton("Save Dockerfile", saveFileAction);
         Node exportButton = styledRunnableButton("Export Dockerfile", () -> showHandleFileExportDialog(exportFileAction));
-        Node runButton = styledButton("Run");
-        List<Node> children = List.of(uploadButton, exportButton, runButton);
-        Node content = styledVbox(children, Pos.TOP_CENTER);
-        results.setContent(content);
+        Line line = new Line(0, 0, 200, 0);
+        line.setStroke(Color.web("#0071F3"));
+        Node contentTop = styledVbox(List.of(uploadButton, saveButton, exportButton, line), Pos.TOP_CENTER);
+
+        Node containerName = styledTextField("Container Name", model.dockerfileContainerNameProperty());
+        Node hostPort = styledTextField("Host Port", model.dockerfileHostPortProperty());
+        Node containerPort = styledTextField("Container Port", model.dockerfileContainerPortProperty());
+        Node runButton = styledRunnableButton("Build and Run Container from File", dockerFileBuildAction);
+        Node contentBottom = styledVbox(List.of(containerName, hostPort, containerPort, runButton), Pos.TOP_CENTER);
+        Node box = new VBox(contentTop, contentBottom);
+        results.setContent(box);
         return results;
     }
 
@@ -144,21 +158,24 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private TitledPane createContainerDetails(DockerContainerObject container) {
 
+        // Container details
         Node idLabel = styledLabel("Container ID: "+ container.getContainerId());
         Node nameLabel = styledLabel("Container Name: " + container.getContainerName());
         Node imageLabel = styledLabel("Container Image: " + container.getImage());
 
+        //Bound container status
         StringBinding statusBinding = Bindings.createStringBinding(() -> container.runningProperty().get() ? "Running" : "Stopped", container.runningProperty());
         StringBinding boundTitle = Bindings.createStringBinding(() -> {
             String status = container.runningProperty().get() ? "Running" : "Stopped";
             return container.getContainerName()+" : " + status;
         }, container.runningProperty());
 
-        //TODO Clean up
-
+        // Hyperlink to open browser to container bindings
         Node portLabel = styledLabel("Configured Port (Click Me!): ");
         Hyperlink portLink = new Hyperlink("http://localhost:"+ container.getHostPort());
         portLink.setOnAction(e -> openBrowserToContainerBindings.accept(container.getContainerId()));
+
+        // Buttons
         Node streamContainerLogsButton = styledRunnableButton("Stream Logs", () -> streamContainerAction.accept(container.getContainerId()));
         Node startContainerButton = styledRunnableButton("Start", () -> startContainerAction.accept(container.getContainerId()));
         Node stopContainerButton = styledRunnableButton("Stop", () -> stopContainerAction.accept(container.getContainerId()));
@@ -199,15 +216,20 @@ public class DockerViewBuilder implements Builder<Region> {
     }
 
     private Node createOutputArea() {
-        TextArea result = new TextArea();
-        result.setEditable(false);
-        result.setWrapText(true);
+        ListView<String> result = new ListView<>();
         result.setMaxHeight(Double.MAX_VALUE);
-        result.textProperty().bindBidirectional(model.outputProperty());
-        model.outputProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(() -> {
-                result.selectPositionCaret(result.getLength());
-                result.deselect();  // to remove the text selection
-            }));
+        result.setItems(model.outputListProperty());
+
+        // Add a listener to the ObservableList from model
+        model.outputListProperty().addListener((ListChangeListener<String>) c -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+                    // Scroll to the last item
+                    result.scrollTo(model.outputListProperty().size() - 1);
+                }
+            }
+        });
+
         return result;
     }
 
@@ -301,6 +323,7 @@ public class DockerViewBuilder implements Builder<Region> {
         FileChooser results = new FileChooser();
         results.setTitle(title);
         results.getExtensionFilters().add(new FileChooser.ExtensionFilter("Dockerfile", "Dockerfile"));
+        results.setInitialDirectory(new File("src/main/resources/dockerfiles"));
         return results;
     }
 
@@ -355,12 +378,7 @@ public class DockerViewBuilder implements Builder<Region> {
         Button results = new Button(label);
         results.setPrefWidth(150);
         results.setOnAction(evt -> action.run());
-        return results;
-    }
-
-    private Node styledButton(String label) {
-        Button results = new Button(label);
-        results.setPrefWidth(150);
+        results.disableProperty().bind(model.threadBuildingProperty());
         return results;
     }
 
@@ -368,7 +386,7 @@ public class DockerViewBuilder implements Builder<Region> {
         ComboBox<String> results = new ComboBox<>();
         results.setPromptText(prompt);
         results.setPrefWidth(150);
-        results.itemsProperty().bind(Bindings.createObjectBinding(() -> items, items));
+        results.setItems(items);
         results.valueProperty().bindBidirectional(binding);
         return results;
     }

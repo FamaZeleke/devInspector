@@ -1,6 +1,7 @@
 package nivohub.devinspector.view;
 
 import atlantafx.base.controls.ToggleSwitch;
+import atlantafx.base.theme.Styles;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -10,6 +11,8 @@ import nivohub.devinspector.enums.View;
 import nivohub.devinspector.interfaces.ApplicationInterface;
 import nivohub.devinspector.interfaces.DockerInterface;
 import nivohub.devinspector.model.DockerModel;
+import org.kordamp.ikonli.feather.Feather;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.function.Consumer;
 
@@ -30,19 +33,23 @@ public class MenuBarBuilder implements Builder<Region> {
 
         @Override
         public Region build() {
-                Region space = new Region();
-                HBox.setHgrow(space, Priority.ALWAYS);
-
+                MenuBar menuBar = createMenuBar();
                 Node label = dockerConnectionLabel();
-
                 Node switchTheme = toggleThemeSwitch();
-
-                MenuBar menuBar = new MenuBar();
-                menuBar.getMenus().addAll(mainMenu(), dockerMenu());
+                Node progressBox = createProgressBox();
 
                 AnchorPane result = new AnchorPane();
+                setAnchors(result, menuBar, progressBox, label, switchTheme);
+
+                return result;
+        }
+
+        private void setAnchors(AnchorPane result, MenuBar menuBar, Node progressBox, Node label, Node switchTheme) {
                 AnchorPane.setLeftAnchor(menuBar, 0.0);
                 AnchorPane.setTopAnchor(menuBar, 0.0);
+
+                AnchorPane.setLeftAnchor(progressBox, 400.0);
+                AnchorPane.setTopAnchor(progressBox, 8.0);
 
                 AnchorPane.setRightAnchor(label, 68.0);
                 AnchorPane.setTopAnchor(label, 0.0);
@@ -52,8 +59,35 @@ public class MenuBarBuilder implements Builder<Region> {
                 AnchorPane.setTopAnchor(switchTheme, 0.0);
                 AnchorPane.setBottomAnchor(switchTheme, 0.0);
 
-                result.getChildren().addAll(menuBar, switchTheme, label);
-                return result;
+                result.getChildren().addAll(menuBar, progressBox, label, switchTheme);
+        }
+
+        private Node createProgressBox() {
+                ProgressBar threadIndicator = new ProgressBar(0);
+                threadIndicator.setPrefSize(200,20);
+                threadIndicator.progressProperty().bind(Bindings.createDoubleBinding(
+                        () -> dockerModel.threadBuildingProperty().get() ? -1d : 0d,
+                        dockerModel.threadBuildingProperty()
+                ));
+
+                Button stopButton = new Button(null, new FontIcon(Feather.X_SQUARE));
+                stopButton.getStyleClass().addAll(
+                        Styles.BUTTON_ICON, Styles.BUTTON_OUTLINED, Styles.DANGER, Styles.SMALL
+                );
+                stopButton.setPrefSize(20, 20);
+                stopButton.visibleProperty().bind(dockerModel.threadBuildingProperty());
+                stopButton.setOnAction(event -> dockerInterface.stopThread());
+
+                HBox progressBox = new HBox(threadIndicator, stopButton);
+                progressBox.setSpacing(10);
+
+                return progressBox;
+        }
+
+        private MenuBar createMenuBar() {
+                MenuBar menuBar = new MenuBar();
+                menuBar.getMenus().addAll(mainMenu(), dockerMenu());
+                return menuBar;
         }
 
         private Menu mainMenu() {
@@ -116,6 +150,5 @@ public class MenuBarBuilder implements Builder<Region> {
                 toggleSwitch.selectedProperty().addListener((observable, oldValue, newValue) -> applicationInterface.toggleTheme());
                 return toggleSwitch;
         }
-
 
 }
