@@ -18,7 +18,7 @@ public class DockerController extends BaseController implements DockerInterface 
 
     public DockerController(UserModel userModel, DockerModel model) {
         interactor = new DockerInteractor(model, userModel);
-        viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::connectDocker, this::disconnectDocker, this::openBrowserToContainerBindings, this::uploadFileEvent, this::exportFileAction, this::startContainer, this::stopContainer, this::removeContainer, this::listenToContainerLogs);
+        viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::openBrowserToContainerBindings, this::uploadFileEvent, this::exportFileAction, this::startContainer, this::stopContainer, this::removeContainer, this::listenToContainerLogs);
     }
 
     private void exportFileAction() {

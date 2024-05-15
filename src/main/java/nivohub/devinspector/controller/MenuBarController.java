@@ -7,6 +7,7 @@ import nivohub.devinspector.interfaces.ApplicationInterface;
 import nivohub.devinspector.interfaces.DockerInterface;
 import nivohub.devinspector.model.ApplicationModel;
 import nivohub.devinspector.enums.View;
+import nivohub.devinspector.model.DockerModel;
 import nivohub.devinspector.view.MenuBarBuilder;
 
 
@@ -14,9 +15,9 @@ public class MenuBarController {
     private final Builder<MenuBar> viewBuilder;
     private final MenuBarInteractor interactor;
 
-    public MenuBarController(ApplicationModel applicationModel, DockerInterface dockerInterface, ApplicationInterface applicationInterface) {
+    public MenuBarController(ApplicationModel applicationModel, DockerInterface dockerInterface, DockerModel dockerModel, ApplicationInterface applicationInterface) {
         interactor = new MenuBarInteractor(applicationModel);
-        viewBuilder = new MenuBarBuilder(this::handleView, dockerInterface, applicationInterface);
+        viewBuilder = new MenuBarBuilder(this::handleView, dockerInterface, dockerModel, applicationInterface);
     }
 
     private void handleView(View view) {
