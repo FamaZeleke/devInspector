@@ -216,15 +216,20 @@ public class DockerViewBuilder implements Builder<Region> {
     }
 
     private Node createOutputArea() {
-        TextArea result = new TextArea();
-        result.setEditable(false);
-        result.setWrapText(true);
+        ListView<String> result = new ListView<>();
         result.setMaxHeight(Double.MAX_VALUE);
-        result.textProperty().bindBidirectional(model.outputProperty());
-        model.outputProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(() -> {
-                result.selectPositionCaret(result.getLength());
-                result.deselect();  // to remove the text selection
-            }));
+        result.setItems(model.outputListProperty());
+
+        // Add a listener to the ObservableList from model
+        model.outputListProperty().addListener((ListChangeListener<String>) c -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+                    // Scroll to the last item
+                    result.scrollTo(model.outputListProperty().size() - 1);
+                }
+            }
+        });
+
         return result;
     }
 

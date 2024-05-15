@@ -43,14 +43,6 @@ public class DockerInteractor {
         dockerEngine.closeDockerClient();
     }
 
-    public void updateModelConnection(Boolean status) {
-        model.dockerConnectedProperty().set(status);
-    }
-
-    public void updateModelThreadBuilding(Boolean status) {
-        model.threadBuildingProperty().set(status);
-    }
-
     //Container operations
     public String pullAndRunContainer() throws InterruptedException, BindingPortAlreadyAllocatedException {
         stopLogStream(null);
@@ -115,7 +107,7 @@ public class DockerInteractor {
 
     //Model operations
     public void addToOutput(String message) {
-        model.addToOutput(" \n" + message);
+        model.addToOutput(message);
     }
 
     public void addContainerToList(DockerContainerObject container) {
@@ -128,6 +120,14 @@ public class DockerInteractor {
 
     public void updateContainerStatus(String containerId, Boolean status) {
         model.updateContainerStatus(containerId, status);
+    }
+
+    public void updateModelConnection(Boolean status) {
+        model.dockerConnectedProperty().set(status);
+    }
+
+    public void updateModelThreadBuilding(Boolean status) {
+        model.threadBuildingProperty().set(status);
     }
 
     private String getPortsForContainer(String containerId) {

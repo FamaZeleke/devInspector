@@ -18,7 +18,7 @@ public class DockerModel {
     private final ListProperty<String> selectedImageTags = new SimpleListProperty<>();
     private final ObjectProperty<File> dockerFile = new SimpleObjectProperty<>();
     private final StringProperty dockerFileText = new SimpleStringProperty();
-    private final StringProperty output = new SimpleStringProperty("");
+    private final ObservableList<String> outputList = FXCollections.observableArrayList();
     private final StringProperty selectedImage = new SimpleStringProperty();
     private final StringProperty selectedTag = new SimpleStringProperty();
     private final StringProperty formContainerName = new SimpleStringProperty("");
@@ -82,9 +82,12 @@ public class DockerModel {
 
     public void addToOutput(String newOutput) {
         if (newOutput != null) {
-            String currentOutput = this.output.get();
-            this.output.setValue(currentOutput+newOutput);
+            outputList.add(newOutput);
         }
+    }
+
+    public ObservableList<String> outputListProperty () {
+        return outputList;
     }
 
     public ObservableList<String> getDockerImageNames() {
@@ -122,10 +125,6 @@ public class DockerModel {
 
     public StringProperty dockerFileTextProperty() {
         return dockerFileText;
-    }
-
-    public StringProperty outputProperty() {
-        return output;
     }
 
     public StringProperty selectedImageProperty() {
