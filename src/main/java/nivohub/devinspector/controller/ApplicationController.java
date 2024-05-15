@@ -31,4 +31,9 @@ public class ApplicationController extends BaseController implements Application
     public void exitApplication() {
         System.exit(0);
     }
+
+    @Override
+    public void toggleTheme() {
+        stageManager.toggleTheme();
+    }
 }
