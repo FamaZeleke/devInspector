@@ -3,20 +3,21 @@ package nivohub.devinspector.model;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 public class CLModel {
-    private final SimpleStringProperty output = new SimpleStringProperty("");
+    private final ObservableList<String> output = FXCollections.observableArrayList();
     private final BooleanProperty running = new SimpleBooleanProperty(false);
     private final String menuCommand = "java -cp ./target/classes nivohub.devinspector.clitool.CLMain";
 
-    public SimpleStringProperty outputProperty() {
+    public ObservableList<String> outputProperty() {
         return output;
     }
 
     public void appendOutput(String newOutput) {
         if (newOutput != null) {
-            String currentOutput = this.output.get();
-            this.output.setValue(currentOutput+newOutput);
+            this.output.add(newOutput);
         }
     }
 
