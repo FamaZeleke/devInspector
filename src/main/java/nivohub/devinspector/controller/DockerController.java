@@ -63,6 +63,34 @@ public class DockerController extends BaseController implements DockerInterface 
         new Thread(task).start();
     }
 
+    private void listenToContainerLogs(String containerId) {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() {
+                interactor.addToOutput("Starting log stream...");
+                interactor.stopLogStream(containerId);
+                interactor.streamLogs(containerId);
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> interactor.addToOutput("Log stream started"));
+        task.setOnFailed(e -> interactor.addToOutput("Failed to start log stream: "+e.getSource().getException().getMessage()));
+        task.run();
+    }
+
+    private void pullAndRunContainer() {
+        Task<String> task = new Task<>() {
+            @Override
+            protected String call() throws InterruptedException, BindingPortAlreadyAllocatedException {
+                interactor.addToOutput("Pulling and running container...");
+                return interactor.pullAndRunContainer();
+            }
+        };
+        task.setOnSucceeded(e -> interactor.addToOutput("Container created with id: " + e.getSource().getValue()));
+        task.setOnFailed(e -> interactor.addToOutput("Failed to pull and run container: "+e.getSource().getException().getMessage()));
+        new Thread(task).start();
+    }
+
     @Override
     public void connectDocker() {
         Task<Void> task = new Task<>() {
@@ -101,21 +129,7 @@ public class DockerController extends BaseController implements DockerInterface 
         task.run();
     }
 
-    private void listenToContainerLogs(String containerId) {
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() {
-                interactor.addToOutput("Starting log stream...");
-                interactor.stopLogStream(containerId);
-                interactor.streamLogs(containerId);
-                return null;
-            }
-        };
-        task.setOnSucceeded(e -> interactor.addToOutput("Log stream started"));
-        task.setOnFailed(e -> interactor.addToOutput("Failed to start log stream: "+e.getSource().getException().getMessage()));
-        task.run();
-    }
-
+    @Override
     public void startContainer(String containerId) {
         Task<Void> task = new Task<>() {
             @Override
@@ -134,6 +148,7 @@ public class DockerController extends BaseController implements DockerInterface 
         task.run();
     }
 
+    @Override
     public void stopContainer(String containerId) {
         Task<Void> task = new Task<>() {
             @Override
@@ -151,6 +166,7 @@ public class DockerController extends BaseController implements DockerInterface 
         task.run();
     }
 
+    @Override
     public void removeContainer(String containerId) {
         Task<Void> task = new Task<>() {
             @Override
@@ -167,16 +183,4 @@ public class DockerController extends BaseController implements DockerInterface 
         task.run();
     }
 
-    private void pullAndRunContainer() {
-        Task<String> task = new Task<>() {
-            @Override
-            protected String call() throws InterruptedException, BindingPortAlreadyAllocatedException {
-                interactor.addToOutput("Pulling and running container...");
-                return interactor.pullAndRunContainer();
-            }
-        };
-        task.setOnSucceeded(e -> interactor.addToOutput("Container created with id: " + e.getSource().getValue()));
-        task.setOnFailed(e -> interactor.addToOutput("Failed to pull and run container: "+e.getSource().getException().getMessage()));
-        new Thread(task).start();
-    }
 }
