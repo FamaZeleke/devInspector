@@ -1,9 +1,12 @@
 package nivohub.devinspector.model;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class CLModel {
     private final SimpleStringProperty output = new SimpleStringProperty("");
+    private final BooleanProperty running = new SimpleBooleanProperty(false);
     private final String menuCommand = "java -cp ./target/classes nivohub.devinspector.clitool.CLMain";
 
     public SimpleStringProperty outputProperty() {
@@ -19,6 +22,10 @@ public class CLModel {
 
     public String getMenuCommand() {
         return this.menuCommand;
+    }
+
+    public BooleanProperty runningProperty() {
+        return running;
     }
 
 }

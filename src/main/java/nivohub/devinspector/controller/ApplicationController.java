@@ -16,7 +16,7 @@ public class ApplicationController extends BaseController implements Application
         DockerController dockerController = new DockerController(userModel, dockerModel);
         ApplicationModel appModel = new ApplicationModel();
         viewBuilder = new ApplicationBuilder(appModel,
-                new MenuBarController(appModel, dockerController, this).getView(),
+                new MenuBarController(appModel, dockerController, dockerModel, this).getView(),
                 new HomeController(dockerModel, dockerController).getView(),
                 new CLController(userModel).getView(),
                 dockerController.getView());

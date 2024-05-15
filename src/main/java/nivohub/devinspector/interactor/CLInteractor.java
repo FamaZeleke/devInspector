@@ -31,6 +31,7 @@ public class CLInteractor {
                     shell = expectJ.spawn("/bin/bash");
                 }
                 model.appendOutput("CLI started successfully "+"\n");
+                model.runningProperty().set(true);
             } catch (Exception e) {
                 model.appendOutput("Error starting CLI"+ e.getMessage() + "\n");
                 e.printStackTrace();
@@ -51,11 +52,13 @@ public class CLInteractor {
             model.appendOutput("Error stopping CLI"+ "\n" + e.getMessage());
             e.printStackTrace();
         }
-        model.appendOutput("""
-
-                CLI stopped successfully
-                """);
+        model.appendOutput("\n CLI stopped successfully");
+        model.runningProperty().set(false);
     }
+
+    // todo refactor to use a command object?
+
+    //todo instead of TextArea use a ListView
 
     public void listenToShellOutput() {
         shellThread = new Thread(() -> {

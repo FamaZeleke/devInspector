@@ -49,12 +49,14 @@ public class CLViewBuilder implements Builder<Region> {
     private Node startButton() {
         Button result = styledButton( "Start");
         result.setOnAction(e -> cliTask.accept(TaskType.START));
+        result.disableProperty().bind(model.runningProperty());
         return result;
     }
 
     private Node stopButton() {
         Button result = styledButton( "Stop");
         result.setOnAction(e -> cliTask.accept(TaskType.STOP));
+        result.disableProperty().bind(model.runningProperty().not());
         return result;
     }
 
@@ -98,12 +100,10 @@ public class CLViewBuilder implements Builder<Region> {
         output.setWrapText(true);
         output.setMaxHeight(Double.MAX_VALUE);
         output.textProperty().bindBidirectional(model.outputProperty());
-        model.outputProperty().addListener((obs, oldVal, newVal) -> {
-            Platform.runLater(() -> {
-                output.selectPositionCaret(output.getLength());
-                output.deselect();  // to remove the text selection
-            });
-        });
+        model.outputProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(() -> {
+            output.selectPositionCaret(output.getLength());
+            output.deselect();  // to remove the text selection
+        }));
         return output;
     }
 
