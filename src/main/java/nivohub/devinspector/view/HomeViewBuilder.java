@@ -81,7 +81,7 @@ private final DockerModel model;
 
         TableColumn<DockerContainerObject, String> nameColumn = createCopyableColumn("Name", "containerName", 200);
 
-        TableColumn<DockerContainerObject, String> imageColumn = createCopyableColumn("Image", "image", 200);
+        TableColumn<DockerContainerObject, String> imageColumn = createCopyableColumn("Image", "image", 150);
 
         TableColumn<DockerContainerObject, Boolean> statusColumn = createStatusColumn();
 
