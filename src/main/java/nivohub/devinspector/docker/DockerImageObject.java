@@ -23,12 +23,32 @@ public class DockerImageObject {
         this(null, imageName, tags, null, null, null);
     }
 
-    public String imageName() {
+   public String getImageId() {
+        return imageId;
+    }
+
+    public String getImageName() {
         return imageName;
     }
 
-    public String[] tags() {
+    public String[] getTags() {
         return tags;
+    }
+
+    public String getTagsAsString() {
+        return String.join(", ", tags);
+    }
+
+    public String getArchitecture() {
+        return architecture;
+    }
+
+    public String getOs() {
+        return os;
+    }
+
+    public String getContainer() {
+        return container;
     }
 
 }
