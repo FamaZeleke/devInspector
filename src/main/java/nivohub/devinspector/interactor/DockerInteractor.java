@@ -1,6 +1,7 @@
 package nivohub.devinspector.interactor;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Ports;
@@ -20,8 +21,10 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class DockerInteractor {
     private final DockerModel model;
@@ -126,7 +129,7 @@ public class DockerInteractor {
     }
 
     private String getPortsForContainer(String containerId) {
-        return this.model.getRunningContainers().stream()
+        return this.model.getDockerContainers().stream()
                 .filter(container -> container.getContainerId().equals(containerId))
                 .findFirst()
                 .map(DockerContainerObject::getHostPort)
@@ -149,17 +152,27 @@ public class DockerInteractor {
 
     //Helpers
     public DockerContainerObject createContainerObject(InspectContainerResponse containerInfo, String containerId) {
-        String containerNameFromInfo = containerInfo.getName().substring(1); // Remove leading slash
+        String containerName = containerInfo.getName().substring(1); // Remove leading slash
         Map.Entry<ExposedPort, Ports.Binding[]> portBindings = containerInfo.getHostConfig().getPortBindings().getBindings().entrySet().iterator().next(); // Get first port binding
         String hostPort = String.valueOf(portBindings.getValue()[0].getHostPortSpec()); // Get host port
         String exposedPort = String.valueOf(portBindings.getKey().getPort());
         String imageName = containerInfo.getConfig().getImage();
         Boolean status = containerInfo.getState().getRunning();
-        return new DockerContainerObject(containerId, containerNameFromInfo, hostPort, exposedPort, imageName, status);
+        return new DockerContainerObject(containerId, containerName, hostPort, exposedPort, imageName, status);
     }
 
-    public DockerImageObject createImageObject(String imageId, String[] tags) {
-        return new DockerImageObject(imageId, tags);
+    public DockerImageObject createImageObject(InspectImageResponse imageInfo) {
+        String imageId = imageInfo.getId();
+        List<String> repoTags = imageInfo.getRepoTags();
+        String imageName = "";
+        if (repoTags != null && !repoTags.isEmpty()) {
+            imageName = repoTags.get(0).split(":")[0];
+        }
+        String[] tags = imageInfo.getRepoTags().stream().map(tag -> tag.split(":")[1]).toArray(String[]::new);
+        String architecture = imageInfo.getArch();
+        String os = imageInfo.getOs();
+        String container = imageInfo.getContainer();
+        return new DockerImageObject(imageId, imageName, tags, architecture, os, container);
     }
 
     public void listContainers() {
@@ -173,7 +186,8 @@ public class DockerInteractor {
 
     public void listImages() {
         dockerEngine.listImages().forEach(image -> {
-            DockerImageObject imageObject = createImageObject(image.getId(), image.getRepoTags());
+            InspectImageResponse imageInfo = dockerEngine.getImageInfo(image.getId());
+            DockerImageObject imageObject = createImageObject(imageInfo);
             model.addDockerImageTags(imageObject);
         });
     }
