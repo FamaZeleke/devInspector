@@ -75,9 +75,8 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private Region setupLeft() {
         Node tabPane = createTabPane(createDefualtTab(), createDockerfileTab());
-        Node box = createBox();
         VBox content = new VBox();
-        content.getChildren().addAll(tabPane, box);
+        content.getChildren().addAll(tabPane);
         return createRegionPane(content, new Insets(12));
     }
 
@@ -184,17 +183,6 @@ public class DockerViewBuilder implements Builder<Region> {
         TabPane results = new TabPane();
         results.getTabs().addAll(firstTab, secondTab);
         return results;
-    }
-
-    private Node createBox() {
-        Label label = (Label) styledLabel("Docker is not running");
-        label.textProperty().bind(Bindings.when(model.dockerConnectedProperty())
-                .then("Docker is running")
-                .otherwise("Docker is not running"));
-        label.textFillProperty().bind(Bindings.when(model.dockerConnectedProperty())
-                .then(javafx.scene.paint.Color.GREEN)
-                .otherwise(javafx.scene.paint.Color.RED));
-        return styledVbox(List.of(label), Pos.BOTTOM_CENTER);
     }
 
     private Region createRegionPane(Node child, Insets insets) {

@@ -12,13 +12,13 @@ import nivohub.devinspector.enums.View;
 public class ApplicationBuilder implements Builder<Region> {
 
     private final ApplicationModel appModel;
-    private final MenuBar menu;
+    private final Region menu;
     private final Region home;
     private final Region cliView;
     private final Region dockerView;
     // Use user info ^
 
-    public ApplicationBuilder(ApplicationModel model, MenuBar menu, Region home, Region cliView, Region dockerView) {
+    public ApplicationBuilder(ApplicationModel model, Region menu, Region home, Region cliView, Region dockerView) {
         this.appModel = model;
         this.menu = menu;
         this.home = home;

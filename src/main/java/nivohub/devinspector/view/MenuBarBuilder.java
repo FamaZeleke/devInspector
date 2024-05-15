@@ -1,7 +1,9 @@
 package nivohub.devinspector.view;
 
+import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.util.Builder;
 import nivohub.devinspector.enums.View;
 import nivohub.devinspector.interfaces.ApplicationInterface;
@@ -10,7 +12,7 @@ import nivohub.devinspector.model.DockerModel;
 
 import java.util.function.Consumer;
 
-public class MenuBarBuilder implements Builder<MenuBar> {
+public class MenuBarBuilder implements Builder<Region> {
 
         private final Consumer<View> eventHandler;
         private final DockerInterface dockerInterface;
@@ -26,8 +28,25 @@ public class MenuBarBuilder implements Builder<MenuBar> {
 
 
         @Override
-        public MenuBar build() {
-                return new MenuBar(mainMenu(), dockerMenu());
+        public Region build() {
+                Region space = new Region();
+                HBox.setHgrow(space, Priority.ALWAYS);
+
+                Node label = dockerConnectionLabel();
+
+                MenuBar menuBar = new MenuBar();
+                menuBar.getMenus().addAll(mainMenu(), dockerMenu());
+
+                AnchorPane result = new AnchorPane();
+                AnchorPane.setLeftAnchor(menuBar, 0.0);
+                AnchorPane.setTopAnchor(menuBar, 0.0);
+
+                AnchorPane.setRightAnchor(label, 12.0);
+                AnchorPane.setTopAnchor(label, 0.0);
+                AnchorPane.setBottomAnchor(label, 0.0);
+
+                result.getChildren().addAll(menuBar, label);
+                return result;
         }
 
         private Menu mainMenu() {
@@ -72,6 +91,17 @@ public class MenuBarBuilder implements Builder<MenuBar> {
                 button.setOnAction(e -> runnable.run());
                 button.setPrefWidth(100);
                 return button;
+        }
+
+        private Node dockerConnectionLabel() {
+                Label label = new Label("Docker is not running");
+                label.textProperty().bind(Bindings.when(dockerModel.dockerConnectedProperty())
+                        .then("Docker is running")
+                        .otherwise("Docker is not running"));
+                label.textFillProperty().bind(Bindings.when(dockerModel.dockerConnectedProperty())
+                        .then(javafx.scene.paint.Color.GREEN)
+                        .otherwise(javafx.scene.paint.Color.RED));
+                return label;
         }
 
 
