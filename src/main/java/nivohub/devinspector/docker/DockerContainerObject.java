@@ -3,21 +3,23 @@ package nivohub.devinspector.docker;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
-public class DockerContainer {
+//POJO for Docker Container
+public class DockerContainerObject {
     private final String containerId;
     private final String containerName;
     private final String hostPort;
     private final String exposedPort;
     private final String image;
     private final BooleanProperty running = new SimpleBooleanProperty(false);
+    private final BooleanProperty listening = new SimpleBooleanProperty(false);
 
-    public DockerContainer(String containerId, String containerName, String hostPort, String exposedPort, String image, Boolean status) {
+    public DockerContainerObject(String containerId, String containerName, String hostPort, String exposedPort, String image, Boolean status) {
         this.containerId = containerId;
         this.containerName = containerName;
         this.hostPort = hostPort;
         this.exposedPort = exposedPort;
         this.image = image;
-        setRunning(status);
+        running.set(status);
     }
 
     public String getContainerId() {
@@ -36,6 +38,10 @@ public class DockerContainer {
         return image;
     }
 
+    public String getExposedPort() {
+        return exposedPort;
+    }
+
     public BooleanProperty getRunning() {
         return running;
     }
@@ -44,7 +50,8 @@ public class DockerContainer {
         return running;
     }
 
-    public void setRunning(Boolean running) {
-        this.running.set(running);
+    public BooleanProperty listeningProperty() {
+        return listening;
     }
+
 }
