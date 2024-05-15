@@ -12,7 +12,6 @@ import nivohub.devinspector.view.DockerViewBuilder;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Optional;
 
 public class DockerController extends BaseController implements DockerInterface {
     private final DockerInteractor interactor;
@@ -77,6 +76,7 @@ public class DockerController extends BaseController implements DockerInterface 
         task.setOnSucceeded(e -> {
             interactor.addToOutput("Connected to Docker");
             interactor.updateModelConnection(true);
+            interactor.listContainers();
         });
         task.setOnFailed(e -> interactor.addToOutput("Failed to connect to Docker :"+e.getSource().getException().getMessage()));
         new Thread(task).start();
@@ -105,7 +105,7 @@ public class DockerController extends BaseController implements DockerInterface 
             @Override
             protected Void call() {
                 interactor.addToOutput("Starting log stream...");
-                interactor.stopLogStream(Optional.ofNullable(containerId));
+                interactor.stopLogStream(containerId);
                 interactor.streamLogs(containerId);
                 return null;
             }

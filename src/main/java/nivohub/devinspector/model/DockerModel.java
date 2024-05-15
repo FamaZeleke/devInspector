@@ -4,16 +4,18 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import nivohub.devinspector.docker.DockerContainer;
-import nivohub.devinspector.docker.DockerImage;
+import nivohub.devinspector.docker.DockerContainerObject;
+import nivohub.devinspector.docker.DockerImageObject;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class DockerModel {
 
-    private final ObservableList<DockerImage> dockerImages;
-    private final ObservableList<DockerContainer> runningContainers = FXCollections.observableArrayList();
+    private final ObservableList<DockerImageObject> dockerImages;
+    private final ObservableList<DockerContainerObject> runningContainers = FXCollections.observableArrayList();
     private final ListProperty<String> selectedImageTags = new SimpleListProperty<>();
     private final ObjectProperty<File> dockerFile = new SimpleObjectProperty<>();
     private final StringProperty dockerFileText = new SimpleStringProperty();
@@ -29,22 +31,23 @@ public class DockerModel {
 
     public DockerModel() {
         this.dockerImages = FXCollections.observableArrayList(
-                new DockerImage("kale5/rickroll", FXCollections.observableArrayList("latest","arm64")),
-                new DockerImage("ubuntu", FXCollections.observableArrayList("latest","20.04")),
-                new DockerImage("jupyter/base-notebook", FXCollections.observableArrayList("latest","arm64"))
-        );
+                new DockerImageObject("kale5/rickroll", new String[]{"latest","arm64"}),
+                new DockerImageObject("jupyter/base-notebook", new String[]{"latest", "arm64"}));
+
+        // Create a binding to check if an image is selected - ui state management
         imageSelected = selectedImage.isNotNull();
-        selectedImage.addListener((observable, oldValue, newValue) -> {
-            DockerImage image = dockerImages.stream()
-                    .filter(dockerImage -> dockerImage.imageName().equals(newValue))
-                    .findFirst()
-                    .orElse(null);
-            if (image != null) {
-                selectedImageTags.set(FXCollections.observableArrayList(image.tags()));
-            } else {
-                selectedImageTags.set(FXCollections.observableArrayList());
-            }
-        });
+
+        // Update the selectedImageTags list when the selectedImage changes - react to ui state changes
+        selectedImage.addListener((observable, oldValue, newValue) -> updateSelectedImageTags(newValue));
+    }
+
+    public void updateSelectedImageTags(String newValue) {
+        String[] tags = dockerImages.stream()
+                .filter(dockerImage -> dockerImage.imageName().equals(newValue))
+                .findFirst()
+                .map(DockerImageObject::tags)
+                .orElse(new String[0]);
+        selectedImageTags.set(FXCollections.observableArrayList(tags));
     }
 
     public void addToOutput(String newOutput) {
@@ -56,14 +59,15 @@ public class DockerModel {
 
     public ObservableList<String> getDockerImageNames() {
         return dockerImages.stream()
-                .map(DockerImage::imageName)
+                .map(DockerImageObject::imageName)
                 .collect(Collectors.toCollection(FXCollections::observableArrayList));
     }
 
-    public ObservableList<DockerContainer> getRunningContainers() {
+    public ObservableList<DockerContainerObject> getRunningContainers() {
         return runningContainers;
     }
 
+    // Bindings and properties
     public ListProperty<String> selectedImageTagsProperty() {
         return selectedImageTags;
     }
@@ -112,11 +116,16 @@ public class DockerModel {
         return imageSelected;
     }
 
-    public void addDockerImage(DockerImage dockerImage) {
+
+
+
+    // Container object management
+    public void addDockerImageTags(DockerImageObject dockerImage) {
         dockerImages.add(dockerImage);
     }
 
-    public void addContainerToList(DockerContainer container) {
+
+    public void addContainerToList(DockerContainerObject container) {
         runningContainers.add(container);
     }
 
