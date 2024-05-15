@@ -77,6 +77,7 @@ public class DockerController extends BaseController implements DockerInterface 
             interactor.addToOutput("Connected to Docker");
             interactor.updateModelConnection(true);
             interactor.listContainers();
+            interactor.listImages();
         });
         task.setOnFailed(e -> interactor.addToOutput("Failed to connect to Docker :"+e.getSource().getException().getMessage()));
         new Thread(task).start();
