@@ -12,7 +12,6 @@ import nivohub.devinspector.docker.DockerContainerObject;
 import nivohub.devinspector.docker.DockerImageObject;
 import nivohub.devinspector.interfaces.DockerInterface;
 import nivohub.devinspector.model.DockerModel;
-import org.jetbrains.annotations.NotNull;
 
 public class HomeViewBuilder implements Builder<Region> {
 

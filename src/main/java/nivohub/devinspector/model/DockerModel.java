@@ -18,7 +18,6 @@ public class DockerModel {
     private final ObjectProperty<File> dockerFile = new SimpleObjectProperty<>();
     private final StringProperty dockerFileText = new SimpleStringProperty();
     private final StringProperty output = new SimpleStringProperty("");
-    private final StringProperty currentContainerId = new SimpleStringProperty();
     private final StringProperty selectedImage = new SimpleStringProperty();
     private final StringProperty selectedTag = new SimpleStringProperty();
     private final StringProperty formContainerName = new SimpleStringProperty("");
@@ -84,10 +83,6 @@ public class DockerModel {
 
     public StringProperty outputProperty() {
         return output;
-    }
-
-    public StringProperty currentContainerIdProperty() {
-        return currentContainerId;
     }
 
     public StringProperty selectedImageProperty() {

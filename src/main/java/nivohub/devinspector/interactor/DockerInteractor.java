@@ -21,10 +21,8 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class DockerInteractor {
     private final DockerModel model;
@@ -61,7 +59,7 @@ public class DockerInteractor {
         return result;
     }
 
-    public String buildAndRunContainerFromDockerfile() throws InterruptedException, BindingPortAlreadyAllocatedException {
+    public String buildAndRunContainerFromDockerfile() throws BindingPortAlreadyAllocatedException {
         stopLogStream(null);
         String result;
         result = dockerEngine.buildAndRunContainerFromDockerfile(model.dockerFileProperty().get(), model.formContainerNameProperty().get(), Integer.parseInt(model.formContainerHostPortProperty().get()), Integer.parseInt(model.formContainerPortProperty().get()));
