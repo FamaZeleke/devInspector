@@ -8,14 +8,12 @@ import nivohub.devinspector.docker.DockerContainerObject;
 import nivohub.devinspector.docker.DockerImageObject;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class DockerModel {
 
     private final ObservableList<DockerImageObject> dockerImages;
-    private final ObservableList<DockerContainerObject> runningContainers = FXCollections.observableArrayList();
+    private final ObservableList<DockerContainerObject> dockerContainers = FXCollections.observableArrayList();
     private final ListProperty<String> selectedImageTags = new SimpleListProperty<>();
     private final ObjectProperty<File> dockerFile = new SimpleObjectProperty<>();
     private final StringProperty dockerFileText = new SimpleStringProperty();
@@ -43,9 +41,9 @@ public class DockerModel {
 
     public void updateSelectedImageTags(String newValue) {
         String[] tags = dockerImages.stream()
-                .filter(dockerImage -> dockerImage.imageName().equals(newValue))
+                .filter(dockerImage -> dockerImage.getImageName().equals(newValue))
                 .findFirst()
-                .map(DockerImageObject::tags)
+                .map(DockerImageObject::getTags)
                 .orElse(new String[0]);
         selectedImageTags.set(FXCollections.observableArrayList(tags));
     }
@@ -59,12 +57,16 @@ public class DockerModel {
 
     public ObservableList<String> getDockerImageNames() {
         return dockerImages.stream()
-                .map(DockerImageObject::imageName)
+                .map(DockerImageObject::getImageName)
                 .collect(Collectors.toCollection(FXCollections::observableArrayList));
     }
 
-    public ObservableList<DockerContainerObject> getRunningContainers() {
-        return runningContainers;
+    public ObservableList<DockerImageObject> getDockerImages() {
+        return dockerImages;
+    }
+
+    public ObservableList<DockerContainerObject> getDockerContainers() {
+        return dockerContainers;
     }
 
     // Bindings and properties
@@ -126,18 +128,18 @@ public class DockerModel {
 
 
     public void addContainerToList(DockerContainerObject container) {
-        runningContainers.add(container);
+        dockerContainers.add(container);
     }
 
     public void updateContainerStatus(String containerId, Boolean status) {
-        runningContainers.stream()
+        dockerContainers.stream()
                 .filter(container -> container.getContainerId().equals(containerId))
                 .findFirst()
                 .ifPresent(container -> container.runningProperty().set(status));
     }
 
     public void updateContainerListeningStatus(String containerId, Boolean status) {
-        runningContainers.forEach(container -> {
+        dockerContainers.forEach(container -> {
             if (container.getContainerId().equals(containerId)) {
                 container.listeningProperty().set(status);
             } else {
@@ -147,6 +149,6 @@ public class DockerModel {
     }
 
     public void removeContainerFromList(String containerId) {
-        runningContainers.removeIf(container -> container.getContainerId().equals(containerId));
+        dockerContainers.removeIf(container -> container.getContainerId().equals(containerId));
     }
 }
