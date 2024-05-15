@@ -113,9 +113,6 @@ public class DockerModel {
         return imageSelected;
     }
 
-
-
-
     // Container object management
     public void addDockerImageTags(DockerImageObject dockerImage) {
         dockerImages.add(dockerImage);
