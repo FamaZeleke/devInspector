@@ -17,6 +17,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.util.Builder;
 import nivohub.devinspector.docker.DockerContainerObject;
@@ -89,10 +91,15 @@ public class DockerViewBuilder implements Builder<Region> {
         Tab results = new Tab("Dockerfile");
         Node uploadButton = styledRunnableButton("Upload Dockerfile", () -> showHandleFileUploadDialog(uploadFileAction));
         Node exportButton = styledRunnableButton("Export Dockerfile", () -> showHandleFileExportDialog(exportFileAction));
-        Node runButton = styledButton("Run");
-        List<Node> children = List.of(uploadButton, exportButton, runButton);
-        Node content = styledVbox(children, Pos.TOP_CENTER);
-        results.setContent(content);
+        Line line = new Line(0, 0, 200, 0);
+        line.setStroke(Color.web("#0071F3"));
+        Node contentTop = styledVbox(List.of(uploadButton, exportButton, line), Pos.TOP_CENTER);
+
+        Node containerName = styledTextField("Container Name", model.dockerFileContainerNameProperty());
+        Node runButton = styledButton("Build and Run Container from File");
+        Node contentBottom = styledVbox(List.of(containerName, runButton), Pos.TOP_CENTER);
+        Node box = new VBox(contentTop, contentBottom);
+        results.setContent(box);
         return results;
     }
 
@@ -360,6 +367,7 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private Node styledButton(String label) {
         Button results = new Button(label);
+        results.setWrapText(true);
         results.setPrefWidth(150);
         return results;
     }
