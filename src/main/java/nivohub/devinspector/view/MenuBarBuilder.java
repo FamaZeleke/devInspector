@@ -1,5 +1,6 @@
 package nivohub.devinspector.view;
 
+import atlantafx.base.controls.ToggleSwitch;
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -34,6 +35,8 @@ public class MenuBarBuilder implements Builder<Region> {
 
                 Node label = dockerConnectionLabel();
 
+                Node switchTheme = toggleThemeSwitch();
+
                 MenuBar menuBar = new MenuBar();
                 menuBar.getMenus().addAll(mainMenu(), dockerMenu());
 
@@ -41,11 +44,15 @@ public class MenuBarBuilder implements Builder<Region> {
                 AnchorPane.setLeftAnchor(menuBar, 0.0);
                 AnchorPane.setTopAnchor(menuBar, 0.0);
 
-                AnchorPane.setRightAnchor(label, 12.0);
+                AnchorPane.setRightAnchor(label, 68.0);
                 AnchorPane.setTopAnchor(label, 0.0);
                 AnchorPane.setBottomAnchor(label, 0.0);
 
-                result.getChildren().addAll(menuBar, label);
+                AnchorPane.setRightAnchor(switchTheme, 0.0);
+                AnchorPane.setTopAnchor(switchTheme, 0.0);
+                AnchorPane.setBottomAnchor(switchTheme, 0.0);
+
+                result.getChildren().addAll(menuBar, switchTheme, label);
                 return result;
         }
 
@@ -102,6 +109,12 @@ public class MenuBarBuilder implements Builder<Region> {
                         .then(javafx.scene.paint.Color.GREEN)
                         .otherwise(javafx.scene.paint.Color.RED));
                 return label;
+        }
+
+        private Node toggleThemeSwitch() {
+                ToggleSwitch toggleSwitch = new ToggleSwitch();
+                toggleSwitch.selectedProperty().addListener((observable, oldValue, newValue) -> applicationInterface.toggleTheme());
+                return toggleSwitch;
         }
 
 

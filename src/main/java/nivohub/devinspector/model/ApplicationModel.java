@@ -12,10 +12,6 @@ public class ApplicationModel {
         return currentView;
     }
 
-    public View getCurrentView() {
-        return currentView.get();
-    }
-
     public void setCurrentView(View view) {
         currentView.set(view);
     }

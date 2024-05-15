@@ -1,6 +1,8 @@
 package nivohub.devinspector;
 
 import atlantafx.base.theme.PrimerDark;
+import atlantafx.base.theme.PrimerLight;
+import atlantafx.base.theme.Theme;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -12,6 +14,7 @@ import nivohub.devinspector.model.UserModel;
 public class AppRoot extends Application implements StageManager {
 
     private Stage primaryStage;
+    private Theme theme = new PrimerDark();
     private ApplicationController applicationController;
 
     public static void main(String[] args) {
@@ -29,7 +32,7 @@ public class AppRoot extends Application implements StageManager {
         userModel.setOsArch(osArch);
         // Dependency Injection via compositon - Guice Might be a good idea
         this.applicationController = new ApplicationController(userModel, this);
-        Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
+        Application.setUserAgentStylesheet(theme.getUserAgentStylesheet());
         LoginController loginController = new LoginController(userModel, applicationController);
         primaryStage.setScene(new Scene(loginController.getView()));
         primaryStage.show();
@@ -40,6 +43,12 @@ public class AppRoot extends Application implements StageManager {
         primaryStage.setScene(new Scene(applicationController.getView()));
         primaryStage.setWidth(1024);
         primaryStage.setHeight(768);
+    }
+
+    @Override
+    public void toggleTheme() {
+        theme = theme instanceof PrimerDark ? new PrimerLight() : new PrimerDark();
+        Application.setUserAgentStylesheet(theme.getUserAgentStylesheet());
     }
 
 
