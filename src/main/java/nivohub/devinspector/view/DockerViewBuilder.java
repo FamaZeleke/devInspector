@@ -34,8 +34,6 @@ public class DockerViewBuilder implements Builder<Region> {
     }
 
     private final DockerModel model;
-    private final Runnable connectDockerAction;
-    private final Runnable disconnectDockerAction;
     private final Runnable pullAndRunContainerAction;
     private final Consumer<File> uploadFileAction;
     private final Consumer<String> openBrowserToContainerBindings;
@@ -47,10 +45,8 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private final ObjectProperty<CenterTabs> currentCenterTab = new SimpleObjectProperty<>(CenterTabs.OUTPUT);
 
-    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Runnable connectDockerAction, Runnable disconnectDockerAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable exportFileAction, Consumer<String> startContainerAction, Consumer<String> stopContainerAction, Consumer<String> removeContainerAction, Consumer<String> streamContainerAction) {
+    public DockerViewBuilder(DockerModel model, Runnable pullAndRunContainerAction, Consumer<String> openBrowserToContainerBindings, Consumer<File> uploadFileAction, Runnable exportFileAction, Consumer<String> startContainerAction, Consumer<String> stopContainerAction, Consumer<String> removeContainerAction, Consumer<String> streamContainerAction) {
         this.model = model;
-        this.connectDockerAction = connectDockerAction;
-        this.disconnectDockerAction = disconnectDockerAction;
         this.openBrowserToContainerBindings = openBrowserToContainerBindings;
         this.pullAndRunContainerAction = pullAndRunContainerAction;
         this.uploadFileAction = uploadFileAction;
@@ -79,9 +75,8 @@ public class DockerViewBuilder implements Builder<Region> {
 
     private Region setupLeft() {
         Node tabPane = createTabPane(createDefualtTab(), createDockerfileTab());
-        Node box = createBox();
         VBox content = new VBox();
-        content.getChildren().addAll(tabPane, box);
+        content.getChildren().addAll(tabPane);
         return createRegionPane(content, new Insets(12));
     }
 
@@ -188,23 +183,6 @@ public class DockerViewBuilder implements Builder<Region> {
         TabPane results = new TabPane();
         results.getTabs().addAll(firstTab, secondTab);
         return results;
-    }
-
-    // Create new output per container -> change stream log button to generate output pane
-
-    private Node createBox() {
-        Label label = (Label) styledLabel("Docker is not running");
-        label.textProperty().bind(Bindings.when(model.dockerConnectedProperty())
-                .then("Docker is running")
-                .otherwise("Docker is not running"));
-        label.textFillProperty().bind(Bindings.when(model.dockerConnectedProperty())
-                .then(javafx.scene.paint.Color.GREEN)
-                .otherwise(javafx.scene.paint.Color.RED));
-        Node connectDocker = styledRunnableButton("Connect Docker", connectDockerAction);
-        Node disconnectDocker = styledRunnableButton("Disconnect Docker", disconnectDockerAction);
-        connectDocker.disableProperty().bind(model.dockerConnectedProperty());
-        disconnectDocker.disableProperty().bind(model.dockerConnectedProperty().not());
-        return styledVbox(List.of(label, connectDocker, disconnectDocker), Pos.BOTTOM_CENTER);
     }
 
     private Region createRegionPane(Node child, Insets insets) {

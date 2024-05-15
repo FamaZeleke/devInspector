@@ -1,32 +1,27 @@
 package nivohub.devinspector.controller;
 
-import javafx.scene.control.MenuBar;
-import javafx.util.Builder;
 import nivohub.devinspector.interactor.MenuBarInteractor;
 import nivohub.devinspector.interfaces.ApplicationInterface;
 import nivohub.devinspector.interfaces.DockerInterface;
 import nivohub.devinspector.model.ApplicationModel;
 import nivohub.devinspector.enums.View;
+import nivohub.devinspector.model.DockerModel;
 import nivohub.devinspector.view.MenuBarBuilder;
 
 
-public class MenuBarController {
-    private final Builder<MenuBar> viewBuilder;
+public class MenuBarController extends BaseController{
     private final MenuBarInteractor interactor;
 
-    public MenuBarController(ApplicationModel applicationModel, DockerInterface dockerInterface, ApplicationInterface applicationInterface) {
+    public MenuBarController(ApplicationModel applicationModel, DockerInterface dockerInterface, DockerModel dockerModel, ApplicationInterface applicationInterface) {
         interactor = new MenuBarInteractor(applicationModel);
-        viewBuilder = new MenuBarBuilder(this::handleView, dockerInterface, applicationInterface);
+        viewBuilder = new MenuBarBuilder(this::handleView, dockerInterface, dockerModel, applicationInterface);
     }
 
     private void handleView(View view) {
-        switch (view) {
-            case HOME, DOCKER, CLI -> interactor.showView(view);
-            case EXIT -> System.exit(0);
+        if (view == View.HOME || view == View.DOCKER || view == View.CLI) {
+            interactor.showView(view);
+        } else if (view == View.EXIT) {
+            System.exit(0);
         }
-    }
-
-    public MenuBar getView(){
-        return viewBuilder.build();
     }
 }

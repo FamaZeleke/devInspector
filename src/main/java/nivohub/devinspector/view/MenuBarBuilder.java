@@ -1,30 +1,59 @@
 package nivohub.devinspector.view;
 
+import atlantafx.base.controls.ToggleSwitch;
+import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.util.Builder;
 import nivohub.devinspector.enums.View;
 import nivohub.devinspector.interfaces.ApplicationInterface;
 import nivohub.devinspector.interfaces.DockerInterface;
+import nivohub.devinspector.model.DockerModel;
 
 import java.util.function.Consumer;
 
-public class MenuBarBuilder implements Builder<MenuBar> {
+public class MenuBarBuilder implements Builder<Region> {
 
         private final Consumer<View> eventHandler;
         private final DockerInterface dockerInterface;
         private final ApplicationInterface applicationInterface;
+        private final DockerModel dockerModel;
 
-        public MenuBarBuilder(Consumer<View> eventHandler, DockerInterface dockerInterface, ApplicationInterface applicationInterface) {
+        public MenuBarBuilder(Consumer<View> eventHandler, DockerInterface dockerInterface, DockerModel dockerModel, ApplicationInterface applicationInterface) {
                 this.eventHandler = eventHandler;
                 this.dockerInterface = dockerInterface;
+                this.dockerModel = dockerModel;
                 this.applicationInterface = applicationInterface;
         }
 
 
         @Override
-        public MenuBar build() {
-                return new MenuBar(mainMenu(), dockerMenu());
+        public Region build() {
+                Region space = new Region();
+                HBox.setHgrow(space, Priority.ALWAYS);
+
+                Node label = dockerConnectionLabel();
+
+                Node switchTheme = toggleThemeSwitch();
+
+                MenuBar menuBar = new MenuBar();
+                menuBar.getMenus().addAll(mainMenu(), dockerMenu());
+
+                AnchorPane result = new AnchorPane();
+                AnchorPane.setLeftAnchor(menuBar, 0.0);
+                AnchorPane.setTopAnchor(menuBar, 0.0);
+
+                AnchorPane.setRightAnchor(label, 68.0);
+                AnchorPane.setTopAnchor(label, 0.0);
+                AnchorPane.setBottomAnchor(label, 0.0);
+
+                AnchorPane.setRightAnchor(switchTheme, 0.0);
+                AnchorPane.setTopAnchor(switchTheme, 0.0);
+                AnchorPane.setBottomAnchor(switchTheme, 0.0);
+
+                result.getChildren().addAll(menuBar, switchTheme, label);
+                return result;
         }
 
         private Menu mainMenu() {
@@ -49,10 +78,14 @@ public class MenuBarBuilder implements Builder<MenuBar> {
                 Menu dockerMenu = new Menu("Docker Menu");
 
                 Node connectDockerButton = styledRunnableButton("Connect", dockerInterface::connectDocker);
+                connectDockerButton.disableProperty().bind(dockerModel.dockerConnectedProperty());
+
+                Node disconnectDockerButton = styledRunnableButton("Disconnect", dockerInterface::disconnectDocker);
+                disconnectDockerButton.disableProperty().bind(dockerModel.dockerConnectedProperty().not());
+
                 CustomMenuItem connectDocker = new CustomMenuItem(connectDockerButton);
                 connectDocker.setContent(connectDockerButton);
 
-                Node disconnectDockerButton = styledRunnableButton("Disconnect", dockerInterface::disconnectDocker);
                 CustomMenuItem disconnectDocker = new CustomMenuItem(disconnectDockerButton);
                 disconnectDocker.setContent(disconnectDockerButton);
 
@@ -65,6 +98,23 @@ public class MenuBarBuilder implements Builder<MenuBar> {
                 button.setOnAction(e -> runnable.run());
                 button.setPrefWidth(100);
                 return button;
+        }
+
+        private Node dockerConnectionLabel() {
+                Label label = new Label("Docker is not running");
+                label.textProperty().bind(Bindings.when(dockerModel.dockerConnectedProperty())
+                        .then("Docker is running")
+                        .otherwise("Docker is not running"));
+                label.textFillProperty().bind(Bindings.when(dockerModel.dockerConnectedProperty())
+                        .then(javafx.scene.paint.Color.GREEN)
+                        .otherwise(javafx.scene.paint.Color.RED));
+                return label;
+        }
+
+        private Node toggleThemeSwitch() {
+                ToggleSwitch toggleSwitch = new ToggleSwitch();
+                toggleSwitch.selectedProperty().addListener((observable, oldValue, newValue) -> applicationInterface.toggleTheme());
+                return toggleSwitch;
         }
 
 
