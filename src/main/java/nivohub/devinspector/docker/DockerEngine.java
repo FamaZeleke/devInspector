@@ -89,8 +89,7 @@ public class DockerEngine {
 
         // Configure port bindings
         HostConfig hostConfig = configurePortBindings(hostPort, exposedPort);
-
-        // Create and run the Docker container from the built image
+        // Create and run the Docker container from the built image - assumes the Dockerfile exposes a port
         String containerId = createContainer(imageId, null, containerName, hostConfig);
         startContainer(containerId);
         return containerId;
@@ -121,15 +120,6 @@ public class DockerEngine {
                 .withPortBindings(new PortBinding(binding, tcpPort));
     }
 
-    //TODO overload
-
-    private String createContainer(String imageName, String containerName) {
-        return createContainer(imageName, null, containerName, null);
-    }
-
-    private String createContainer(String imageName, String tag, String containerName) {
-        return createContainer(imageName, tag, containerName, null);
-    }
 
     private String createContainer(String imageName, String tag, String containerName, HostConfig hostConfig) {
         CreateContainerResponse container = dockerClient.createContainerCmd(tag != null? imageName + ":" + tag : imageName)
