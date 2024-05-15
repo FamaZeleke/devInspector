@@ -22,6 +22,7 @@ public class DockerModel {
     private final StringProperty selectedImage = new SimpleStringProperty();
     private final StringProperty selectedTag = new SimpleStringProperty();
     private final StringProperty formContainerName = new SimpleStringProperty("");
+    private final StringProperty dockerFileContainerName = new SimpleStringProperty("");
     private final StringProperty formContainerPort = new SimpleStringProperty("");
     private final StringProperty formContainerHostPort = new SimpleStringProperty("");
     private final BooleanBinding imageSelected;
@@ -31,6 +32,8 @@ public class DockerModel {
         this.dockerImages = FXCollections.observableArrayList(
                 new DockerImageObject("kale5/rickroll", new String[]{"latest","arm64"}),
                 new DockerImageObject("jupyter/base-notebook", new String[]{"latest", "arm64"}));
+
+        populateDockerImageNames(); // Populate the dockerImageNames list with the image names for default images
 
         // Create a binding to check if an image is selected - ui state management
         imageSelected = selectedImage.isNotNull();
@@ -54,6 +57,14 @@ public class DockerModel {
                 }
             }
         });
+    }
+
+    private void populateDockerImageNames() {
+        dockerImageNames.addAll(dockerImages.stream()
+                .map(DockerImageObject::getImageName)
+                .filter(name -> name != null && !name.isEmpty())
+                .distinct()
+                .toList());
     }
 
     public void updateSelectedImageTags(String newValue) {
@@ -91,6 +102,10 @@ public class DockerModel {
 
     public ObjectProperty<File> dockerFileProperty() {
         return dockerFile;
+    }
+
+    public StringProperty dockerFileContainerNameProperty() {
+        return dockerFileContainerName;
     }
 
     public StringProperty dockerFileTextProperty() {
