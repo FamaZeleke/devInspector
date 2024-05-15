@@ -23,8 +23,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.function.Consumer;
 
+//Domain class - DockerEngine
 public class DockerEngine {
-
     private DockerClient dockerClient;
     private final String platform;
 
@@ -32,6 +32,7 @@ public class DockerEngine {
      this.platform = platform;
     }
 
+    // Docker client operations
     public void createDockerClient() throws DockerNotRunningException {
         DockerClientConfig config;
         if (platform.equals("windows")) {
@@ -63,34 +64,56 @@ public class DockerEngine {
         dockerClient.close();
     }
 
-    public boolean isDockerRunning() throws DockerNotRunningException {
+    public void isDockerRunning() throws DockerNotRunningException {
         try {
             dockerClient.pingCmd().exec();
-            return true;
         } catch (Exception e) {
             throw new DockerNotRunningException(e.getMessage());
         }
     }
 
 
-    public String createAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException, InterruptedException {
+    // Container Build Processes
+    public String pullAndRunContainer(String imageName, String tag, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException, InterruptedException {
+        // Pull the Docker image from the Docker Hub
         pullImage(imageName, tag);
+        // Configure port bindings
         HostConfig hostConfig = configurePortBindings(hostPort, exposedPort);
+
+        // Create and run the Docker container from the pulled image
         String containerId = createContainer(imageName, tag, containerName, hostConfig);
         startContainer(containerId);
-
-        InspectContainerResponse containerInfo = getContainerInfo(containerId);
-        String containerNameFromInfo = containerInfo.getName().substring(1); // Remove leading slash
-        String hostPortFromInfo = String.valueOf(hostPort);
-        String exposedPortFromInfo = String.valueOf(exposedPort);
-        String imageFromInfo = containerInfo.getConfig().getImage();
-
-//        return new DockerContainer(containerId, containerNameFromInfo, hostPortFromInfo, exposedPortFromInfo, imageFromInfo, true);
         return containerId;
     }
 
-    public InspectContainerResponse getContainerInfo(String containerId) {
-        return dockerClient.inspectContainerCmd(containerId).exec();
+    public String buildAndRunContainerFromDockerfile(File dockerfile, String containerName, int hostPort, int exposedPort) throws BindingPortAlreadyAllocatedException {
+        // Build the Docker image from the Dockerfile
+        String imageId = buildImage(dockerfile);
+
+        // Configure port bindings
+        HostConfig hostConfig = configurePortBindings(hostPort, exposedPort);
+
+        // Create and run the Docker container from the built image
+        String containerId = createContainer(imageId, null, containerName, hostConfig);
+        startContainer(containerId);
+        return containerId;
+    }
+
+    private void pullImage(String imageName, String tag) throws InterruptedException {
+        try {
+            dockerClient.pullImageCmd(imageName + ":" + tag)
+                    .exec(new PullImageResultCallback())
+                    .awaitCompletion();
+        } catch (InterruptedException e) {
+            throw new InterruptedException(e.getMessage());
+        }
+    }
+
+    private String buildImage(File dockerfile) {
+        return dockerClient.buildImageCmd()
+                .withDockerfile(dockerfile)
+                .exec(new BuildImageResultCallback())
+                .awaitImageId();
     }
 
     private HostConfig configurePortBindings(int hostPort, int exposedPort) {
@@ -101,12 +124,28 @@ public class DockerEngine {
                 .withPortBindings(new PortBinding(binding, tcpPort));
     }
 
+    //TODO overload
+
+    private String createContainer(String imageName, String containerName) {
+        return createContainer(imageName, null, containerName, null);
+    }
+
+    private String createContainer(String imageName, String tag, String containerName) {
+        return createContainer(imageName, tag, containerName, null);
+    }
+
     private String createContainer(String imageName, String tag, String containerName, HostConfig hostConfig) {
-        CreateContainerResponse container = dockerClient.createContainerCmd(imageName + ":" + tag)
-                .withHostConfig(hostConfig)
+        CreateContainerResponse container = dockerClient.createContainerCmd(tag != null? imageName + ":" + tag : imageName)
+                .withHostConfig(hostConfig != null ? hostConfig : HostConfig.newHostConfig())
                 .withName(containerName)
                 .exec();
         return container.getId();
+    }
+
+
+    // Container control operations
+    public InspectContainerResponse getContainerInfo(String containerId) {
+        return dockerClient.inspectContainerCmd(containerId).exec();
     }
 
     public void streamContainerLogs(String containerId, Consumer<String> logHandler) {
@@ -159,36 +198,16 @@ public class DockerEngine {
         dockerClient.removeContainerCmd(containerId).exec();
     }
 
-    private void pullImage(String imageName, String tag) throws InterruptedException {
-        try {
-            dockerClient.pullImageCmd(imageName + ":" + tag)
-                    .exec(new PullImageResultCallback())
-                    .awaitCompletion();
-        } catch (InterruptedException e) {
-            throw new InterruptedException(e.getMessage());
-        }
-    }
-
-    public String buildImageFromDockerfile(File file) {
-        return dockerClient.buildImageCmd()
-                .withDockerfile(file)
-                .exec(new BuildImageResultCallback() {
-                    @Override
-                    public void onNext(BuildResponseItem item) {
-                        super.onNext(item);
-                        System.out.println("" + item.getStream());
-                    }
-                })
-                .awaitImageId();
-    }
-
     public void removeImage(String imageId) {
         dockerClient.removeImageCmd(imageId).exec();
     }
 
-//    public DockerContainer listContainers() {
-//        List<Container> containers = dockerClient.listContainersCmd().exec().
-//    }
+    public List<Container> listContainers() {
+        return dockerClient.listContainersCmd().exec();
+    }
 
+    public List<Image> listImages() {
+        return dockerClient.listImagesCmd().exec();
+    }
 
 }
