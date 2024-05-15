@@ -2,10 +2,7 @@ package nivohub.devinspector.docker;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
-import com.github.dockerjava.api.command.BuildImageResultCallback;
-import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.command.*;
 import com.github.dockerjava.api.exception.InternalServerErrorException;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
@@ -208,6 +205,10 @@ public class DockerEngine {
 
     public List<Image> listImages() {
         return dockerClient.listImagesCmd().exec();
+    }
+
+    public InspectImageResponse getImageInfo(String imageName) {
+        return dockerClient.inspectImageCmd(imageName).exec();
     }
 
 }
