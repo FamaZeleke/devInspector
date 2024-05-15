@@ -1,39 +1,47 @@
 package nivohub.devinspector.interactor;
 
 
-import expectj.ExpectJ;
-import expectj.Spawn;
+
+import javafx.application.Platform;
+import nivohub.devinspector.clitool.ShellCommandExecutor;
 import nivohub.devinspector.model.CLModel;
 import nivohub.devinspector.model.UserModel;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 
 public class CLInteractor {
 
     private final CLModel model;
-    private Spawn shell;
+    private ShellCommandExecutor shellCommandExecutor;
     private Thread shellThread;
+    private String platform;
 
     public CLInteractor(CLModel model, UserModel userModel) {
         this.model = model;
+        this.platform = userModel.getPlatform();
     }
-//todo abstract domain objects to separate package
-    public void start() throws Exception {
-        // Start a new terminal session
-        ExpectJ expectJ = new ExpectJ();
+
+    public void start() {
+        shellCommandExecutor = new ShellCommandExecutor();
         shellThread = new Thread(() -> {
             try {
-                if (System.getProperty("os.name").startsWith("Windows")) {
+                if (platform.contains("win")) {
                     // Windows
-                    model.appendOutput("Starting CLI for Windows..."+"\n");
-                    shell = expectJ.spawn("cmd.exe");
+                 addMessageToOutput("Starting CLI for Windows...");
+                    shellCommandExecutor.executeCommand("cmd.exe");
                 } else {
                     // Unix
-                    model.appendOutput("Starting CLI for Unix..."+"\n");
-                    shell = expectJ.spawn("/bin/bash");
+                 addMessageToOutput("Starting CLI for Unix...");
+                    shellCommandExecutor.executeCommand("/bin/bash");
                 }
-                model.appendOutput("CLI started successfully "+"\n");
+                addMessageToOutput("CLI started successfully ");
                 model.runningProperty().set(true);
+                listenToShellOutput(); // Start listening to shell output
             } catch (Exception e) {
-                model.appendOutput("Error starting CLI"+ e.getMessage() + "\n");
+             addMessageToOutput("Error starting CLI"+ e.getMessage());
                 e.printStackTrace();
             }
         });
@@ -41,76 +49,66 @@ public class CLInteractor {
     }
 
     public void stop() {
-        model.appendOutput("""
-
-                Stopping CLI...
-                """);
+        addMessageToOutput("Stopping CLI...");
         try {
             shellThread.interrupt();
-            shell.stop();
         } catch (Exception e) {
-            model.appendOutput("Error stopping CLI"+ "\n" + e.getMessage());
+            addMessageToOutput("Error stopping CLI"+ e.getMessage());
             e.printStackTrace();
         }
-        model.appendOutput("\n CLI stopped successfully");
+        addMessageToOutput("CLI stopped successfully");
         model.runningProperty().set(false);
     }
 
-    // todo refactor to use a command object?
-
-    //todo instead of TextArea use a ListView
-
     public void listenToShellOutput() {
-        shellThread = new Thread(() -> {
+        Thread thread = new Thread(() -> {
             try {
-                String output;
-                String previousOutput = null;
-                while (true) {
-                    output = shell.getCurrentStandardOutContents();
-                    if (output.equals(previousOutput)) {
-                        break; // Break the loop if the output has not changed
-                    }
-                    model.appendOutput(output);
-                    previousOutput = output;
-                    Thread.sleep(1000); // Wait for a short period of time before checking the output again
+                BufferedReader reader = new BufferedReader(new InputStreamReader(shellCommandExecutor.getOutputStream()));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    final String outputLine = line;
+                 model.outputProperty().add(outputLine);
                 }
-            } catch (Exception e) {
-                model.appendOutput("Error listening to shell output"+ "\n" + e.getMessage());
+            } catch (IOException e) {
+             model.outputProperty().add("Error listening to shell output" + "\n" + e.getMessage());
                 e.printStackTrace();
             }
         });
-        shellThread.start();
+        thread.start();
     }
 
-    public Boolean runCLMenu() {
-        String command = model.getMenuCommand();
-        listenToShellOutput();
+    public void runCLMenu() {
+        String projectRootPath = System.getProperty("user.dir");
+        addMessageToOutput("Project's root directory is: " + projectRootPath);
+
+        String cdCommand = "cd " + projectRootPath;
+        String runCommand = model.getMenuCommand();
+        String terminalCommand;
+
+        addMessageToOutput("Running menu in terminal for platform: " + platform);
         try {
-            model.appendOutput("Executing command: " + command + "\n");
-            shell.send(command + "\n");
-            return true;
-        } catch (Exception e) {
-            System.out.println("Error running CLI menu");
+            if ("mac".contains(platform)) {
+                terminalCommand = "osascript -e 'tell app \"Terminal\" to do script \"" + cdCommand + " && " + runCommand + "\"'";
+                Runtime.getRuntime().exec(new String[] { "/bin/bash", "-c", terminalCommand });
+            } else if ("windows".contains(platform)){
+                terminalCommand = "cmd.exe /c start cmd.exe /k \"cd " + projectRootPath + " && " + runCommand + "\"";
+                Runtime.getRuntime().exec(new String[] { "cmd.exe", "/c", terminalCommand });
+            }
+        } catch (IOException e) {
             e.printStackTrace();
-            return false;
         }
     }
 
-    public Boolean executeCommand(String command) {
-        listenToShellOutput();
-        model.appendOutput("Executing command: " + command + "\n");
-        try {
-            shell.send(command + "\n");
-        } catch (Exception e) {
-            System.out.println("Error executing command: " + command);
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+    public void executeCommand(String command) throws IOException {
+        shellCommandExecutor.executeCommand(command);
+    }
+
+    public void addMessageToOutput(String message) {
+        Platform.runLater(() -> model.appendOutput(message));
     }
 
     public void clear() {
-        model.appendOutput("Clearing output...\n");
-        model.outputProperty().setValue("");
+        addMessageToOutput("Clearing output...");
+        model.outputProperty().clear();
     }
 }

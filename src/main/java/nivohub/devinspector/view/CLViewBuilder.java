@@ -2,9 +2,11 @@ package nivohub.devinspector.view;
 
 import javafx.application.Platform;
 
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -95,16 +97,21 @@ public class CLViewBuilder implements Builder<Region> {
     }
 
     private Node createOutputArea() {
-        TextArea output = new TextArea();
-        output.setEditable(false);
-        output.setWrapText(true);
-        output.setMaxHeight(Double.MAX_VALUE);
-        output.textProperty().bindBidirectional(model.outputProperty());
-        model.outputProperty().addListener((obs, oldVal, newVal) -> Platform.runLater(() -> {
-            output.selectPositionCaret(output.getLength());
-            output.deselect();  // to remove the text selection
-        }));
-        return output;
+        ListView<String> result = new ListView<>();
+        result.setEditable(false);
+        result.setMaxHeight(Double.MAX_VALUE);
+        result.setItems(model.outputProperty());
+
+        // Add a listener to the ObservableList from model
+        model.outputProperty().addListener((ListChangeListener<String>) c -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+                    // Scroll to the last item
+                    result.scrollTo(model.outputProperty().size() - 1);
+                }
+            }
+        });
+        return result;
     }
 
     private Button styledButton(String label) {

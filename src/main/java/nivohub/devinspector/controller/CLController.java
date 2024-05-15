@@ -2,11 +2,12 @@ package nivohub.devinspector.controller;
 
 import javafx.concurrent.Task;
 import nivohub.devinspector.enums.TaskType;
-import nivohub.devinspector.exceptions.InvalidCommandException;
 import nivohub.devinspector.interactor.CLInteractor;
 import nivohub.devinspector.model.CLModel;
 import nivohub.devinspector.model.UserModel;
 import nivohub.devinspector.view.CLViewBuilder;
+
+import java.io.IOException;
 
 /**
  * The CommandLineController class represents a controller for running a menu in the terminal.
@@ -16,6 +17,7 @@ import nivohub.devinspector.view.CLViewBuilder;
 public class CLController extends BaseController {
 
     private final CLInteractor interactor;
+
     public CLController(UserModel userModel) {
         CLModel model = new CLModel();
         viewBuilder = new CLViewBuilder(model, this::handleCommand, this::manageCLI, this::runCLMenu);
@@ -42,50 +44,35 @@ public class CLController extends BaseController {
                 return null;
             }
         };
-        task.setOnSucceeded(e -> {
-            System.out.println("Task completed successfully");
-        });
-        task.setOnFailed(e -> {
-            // Handle error
-            e.getSource().getException().printStackTrace();
-        });
-        new Thread(task).start();
+        task.setOnSucceeded(e -> interactor.addMessageToOutput("CLI task completed successfully :"+taskType));
+        task.setOnFailed(e -> interactor.addMessageToOutput("Failed to complete CLI task: "+taskType+" :"+e.getSource().getException().getMessage()));
+        task.run();
     }
 
     private void runCLMenu() {
         Task<Void> startCLIMenu = new Task<>() {
             @Override
-            protected Void call() throws Exception {
+            protected Void call() throws IOException {
                 interactor.runCLMenu();
                 return null;
             }
         };
-        startCLIMenu.setOnSucceeded(e -> {
-            System.out.println("CLI menu started successfully");
-        });
-        startCLIMenu.setOnFailed(e -> {
-            // Handle error
-            e.getSource().getException().printStackTrace();
-        });
+        startCLIMenu.setOnSucceeded(e -> interactor.addMessageToOutput("CLI menu started successfully"));
+        startCLIMenu.setOnFailed(e -> interactor.addMessageToOutput("Failed to start CLI menu: " + e.getSource().getException().getMessage()));
         new Thread(startCLIMenu).start();
     }
 
     private void handleCommand(String command) {
-        Task<Boolean> executeCommand = new Task<>() {
+        interactor.addMessageToOutput("Executing command: " + command);
+        Task<Void> executeCommand = new Task<>() {
             @Override
-            protected Boolean call() throws InvalidCommandException {
-                return interactor.executeCommand(command);
+            protected Void call() throws IOException {
+                interactor.executeCommand(command);
+                return null;
             }
         };
-        executeCommand.setOnSucceeded(e -> {
-            if (Boolean.TRUE.equals(executeCommand.getValue())) {
-                System.out.println("Command executed successfully");
-            }
-        });
-        executeCommand.setOnFailed(e -> {
-            // Handle error
-            e.getSource().getException().printStackTrace();
-        });
+        executeCommand.setOnSucceeded(e -> interactor.addMessageToOutput("Command executed successfully"));
+        executeCommand.setOnFailed(e -> interactor.addMessageToOutput("Failed to execute command: " + e.getSource().getException().getMessage()));
         new Thread(executeCommand).start();
     }
 
