@@ -15,10 +15,36 @@ import java.io.IOException;
 
 public class DockerController extends BaseController implements DockerInterface {
     private final DockerInteractor interactor;
+    private Thread thread;
 
     public DockerController(UserModel userModel, DockerModel model) {
         interactor = new DockerInteractor(model, userModel);
-        viewBuilder = new DockerViewBuilder(model, this::pullAndRunContainer, this::openBrowserToContainerBindings, this::uploadFileEvent, this::exportFileAction, this::startContainer, this::stopContainer, this::removeContainer, this::listenToContainerLogs);
+        viewBuilder = new DockerViewBuilder(model,
+                this::pullAndRunContainer,
+                this::buildAndRunContainerFromDockerfile,
+                this::openBrowserToContainerBindings,
+                this::uploadFileEvent,
+                this::exportFileAction,
+                this::saveFileAction,
+                this::startContainer,
+                this::stopContainer,
+                this::removeContainer,
+                this::listenToContainerLogs);
+    }
+
+    private void saveFileAction() {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws IOException {
+                interactor.addToOutput("Saving file...");
+                interactor.saveFile();
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> interactor.addToOutput("File saved!"));
+        task.setOnFailed(e -> interactor.addToOutput("Failed to save file: "+e.getSource().getException().getMessage()));
+        // Running as Task as this is unlikely to be a long-running task
+        task.run();
     }
 
     private void exportFileAction() {
@@ -79,6 +105,7 @@ public class DockerController extends BaseController implements DockerInterface 
     }
 
     private void pullAndRunContainer() {
+        interactor.updateModelThreadBuilding(true);
         Task<String> task = new Task<>() {
             @Override
             protected String call() throws InterruptedException, BindingPortAlreadyAllocatedException {
@@ -86,9 +113,37 @@ public class DockerController extends BaseController implements DockerInterface 
                 return interactor.pullAndRunContainer();
             }
         };
-        task.setOnSucceeded(e -> interactor.addToOutput("Container created with id: " + e.getSource().getValue()));
-        task.setOnFailed(e -> interactor.addToOutput("Failed to pull and run container: "+e.getSource().getException().getMessage()));
-        new Thread(task).start();
+        task.setOnSucceeded(e -> {
+            interactor.addToOutput("Container created with id: " + e.getSource().getValue());
+            interactor.updateModelThreadBuilding(false);
+        });
+        task.setOnFailed(e -> {
+            interactor.addToOutput("Failed to pull and run container: " + e.getSource().getException().getMessage());
+            interactor.updateModelThreadBuilding(false);
+        });
+        thread = new Thread(task);
+        thread.start();
+    }
+
+    private void buildAndRunContainerFromDockerfile() {
+        interactor.updateModelThreadBuilding(true);
+        Task<String> task = new Task<>() {
+            @Override
+            protected String call() throws BindingPortAlreadyAllocatedException {
+                interactor.addToOutput("Building and running container from Dockerfile...");
+                return interactor.buildAndRunContainerFromDockerfile();
+            }
+        };
+        task.setOnSucceeded(e -> {
+            interactor.addToOutput("Container created with id: " + e.getSource().getValue());
+            interactor.updateModelThreadBuilding(false);
+        });
+        task.setOnFailed(e -> {
+            interactor.addToOutput("Failed to build and run container from Dockerfile: " + e.getSource().getException().getMessage());
+            interactor.updateModelThreadBuilding(false);
+        });
+        thread = new Thread(task);
+        thread.start();
     }
 
     @Override
@@ -183,4 +238,10 @@ public class DockerController extends BaseController implements DockerInterface 
         task.run();
     }
 
+    @Override
+    public void stopThread() {
+        thread.interrupt();
+        interactor.addToOutput("Thread stopped");
+        interactor.updateModelThreadBuilding(false);
+    }
 }
