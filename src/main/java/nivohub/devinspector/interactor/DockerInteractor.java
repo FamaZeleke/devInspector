@@ -186,7 +186,8 @@ public class DockerInteractor {
         dockerEngine.listImages().forEach(image -> {
             InspectImageResponse imageInfo = dockerEngine.getImageInfo(image.getId());
             DockerImageObject imageObject = createImageObject(imageInfo);
-            model.addDockerImageTags(imageObject);
+            model.addDockerImage(imageObject);
+            model.getDockerImageNames();
         });
     }
 }

@@ -368,7 +368,7 @@ public class DockerViewBuilder implements Builder<Region> {
         ComboBox<String> results = new ComboBox<>();
         results.setPromptText(prompt);
         results.setPrefWidth(150);
-        results.itemsProperty().bind(Bindings.createObjectBinding(() -> items, items));
+        results.setItems(items);
         results.valueProperty().bindBidirectional(binding);
         return results;
     }

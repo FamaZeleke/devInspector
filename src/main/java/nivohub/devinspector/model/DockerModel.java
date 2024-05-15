@@ -3,16 +3,17 @@ package nivohub.devinspector.model;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import nivohub.devinspector.docker.DockerContainerObject;
 import nivohub.devinspector.docker.DockerImageObject;
 
 import java.io.File;
-import java.util.stream.Collectors;
 
 public class DockerModel {
 
     private final ObservableList<DockerImageObject> dockerImages;
+    private final ObservableList<String> dockerImageNames = FXCollections.observableArrayList();
     private final ObservableList<DockerContainerObject> dockerContainers = FXCollections.observableArrayList();
     private final ListProperty<String> selectedImageTags = new SimpleListProperty<>();
     private final ObjectProperty<File> dockerFile = new SimpleObjectProperty<>();
@@ -36,10 +37,27 @@ public class DockerModel {
 
         // Update the selectedImageTags list when the selectedImage changes - react to ui state changes
         selectedImage.addListener((observable, oldValue, newValue) -> updateSelectedImageTags(newValue));
+        this.dockerImages.addListener((ListChangeListener<DockerImageObject>) c -> {
+            while (c.next()) {
+                if (c.wasAdded()) {
+                    dockerImageNames.addAll(c.getAddedSubList().stream()
+                            .map(DockerImageObject::getImageName)
+                            .filter(name -> name != null && !name.isEmpty())
+                            .distinct()
+                            .toList());
+                } else if (c.wasRemoved()) {
+                    dockerImageNames.removeAll(c.getRemoved().stream()
+                            .map(DockerImageObject::getImageName)
+                            .filter(name -> name != null && !name.isEmpty())
+                            .distinct()
+                            .toList());
+                }
+            }
+        });
     }
 
     public void updateSelectedImageTags(String newValue) {
-        String[] tags = dockerImages.stream()
+        String[] tags = dockerImages.stream() //
                 .filter(dockerImage -> dockerImage.getImageName().equals(newValue))
                 .findFirst()
                 .map(DockerImageObject::getTags)
@@ -55,9 +73,7 @@ public class DockerModel {
     }
 
     public ObservableList<String> getDockerImageNames() {
-        return dockerImages.stream()
-                .map(DockerImageObject::getImageName)
-                .collect(Collectors.toCollection(FXCollections::observableArrayList));
+        return dockerImageNames;
     }
 
     public ObservableList<DockerImageObject> getDockerImages() {
@@ -114,10 +130,9 @@ public class DockerModel {
     }
 
     // Container object management
-    public void addDockerImageTags(DockerImageObject dockerImage) {
+    public void addDockerImage(DockerImageObject dockerImage) {
         dockerImages.add(dockerImage);
     }
-
 
     public void addContainerToList(DockerContainerObject container) {
         dockerContainers.add(container);
