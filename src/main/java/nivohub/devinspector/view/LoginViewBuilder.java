@@ -6,6 +6,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
@@ -56,7 +57,7 @@ public class LoginViewBuilder implements Builder<Region> {
     }
 
     private Node passwordInput(){
-        return boundTextField(model.inputPasswordProperty(), "Enter Password", loginHandler);
+        return boundPasswordField(model.inputPasswordProperty(), "Enter Password", loginHandler);
     }
 
     private Node nameInput(){
@@ -94,6 +95,14 @@ public class LoginViewBuilder implements Builder<Region> {
         textField.textProperty().bindBidirectional(boundProperty);
         textField.setOnAction(event -> runnable.run());
         return textField;
+    }
+
+    private Node boundPasswordField(StringProperty boundProperty, String promptText, Runnable runnable){
+        PasswordField result = new PasswordField();
+        result.setPromptText(promptText);
+        result.textProperty().bindBidirectional(boundProperty);
+        result.setOnAction(event -> runnable.run());
+        return result;
     }
 
     private Node boundLabel(StringProperty boundProperty){
